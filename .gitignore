@@ -1,0 +1,25 @@
+# Conda environment (installed in-project via `-p .env`)
+.env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+
+# Data artifacts (uncomment / adjust as needed)
+data/*
+!data/.gitkeep
