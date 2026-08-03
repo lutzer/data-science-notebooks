@@ -7,8 +7,6 @@ A minimal starter for Jupyter notebook projects using **conda** for dependency m
 Install one of the following (either works):
 
 - [Miniconda](https://docs.conda.io/en/latest/miniconda.html) — recommended, lightweight
-- [Anaconda](https://www.anaconda.com/download) — full distribution
-- [Miniforge](https://github.com/conda-forge/miniforge) — conda-forge by default
 - or on osx via homebrew:
     ```
     brew install --cask miniconda
