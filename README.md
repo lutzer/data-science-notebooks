@@ -22,18 +22,17 @@ conda --version
 
 ## 1. Create the environment
 
-The environment is installed **inside the project folder** (`./.env/`) rather than in your global conda envs, so each project is self-contained.
 
 **macOS / Linux:**
 
 ```sh
-conda env create -p ./.env -f environment.yml
+conda env create -n data_science -f environment.yml
 ```
 
 **Windows (PowerShell / cmd):**
 
 ```powershell
-conda env create -p .\.env -f environment.yml
+conda env create -n data_science -f environment.yml
 ```
 
 This installs Python 3.12.10, JupyterLab, and the libraries listed in `environment.yml`.
@@ -43,13 +42,13 @@ This installs Python 3.12.10, JupyterLab, and the libraries listed in `environme
 **macOS / Linux:**
 
 ```sh
-conda activate ./.env
+conda activate data_science
 ```
 
 **Windows:**
 
 ```powershell
-conda activate .\.env
+conda activate data_science
 ```
 
 Your shell prompt should now show the env path.
