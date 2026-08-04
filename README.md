@@ -68,7 +68,7 @@ Prefer the classic notebook UI? Use `jupyter notebook` instead.
 Edit `environment.yml`, then sync the environment:
 
 ```sh
-conda env update -p ./.env -f environment.yml --prune
+conda env update -n data_science -f environment.yml --prune
 ```
 
 The `--prune` flag removes packages that are no longer listed in the file.
@@ -84,7 +84,7 @@ conda deactivate
 Remove the environment entirely:
 
 ```sh
-conda env remove -p ./.env
+conda env remove -n data_science
 ```
 
 ## Project layout
