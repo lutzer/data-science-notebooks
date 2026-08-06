@@ -1,0 +1,22 @@
+# Weights per livability variable. Values are relative — 90_scoring.ipynb
+# normalizes them so they sum to 1. Set a weight to 0 to exclude a variable.
+# Variables where lower is better (cost, crime) should be inverted in their
+# source notebook so that higher raw values always mean "better".
+
+# Geography & environment
+water_proximity: 0.5
+mountain_proximity: 0.3
+temperature_pleasantness: 1.0
+precipitation_balance: 0.5
+climate_change_risk: 0.5
+air_quality: 1.0
+
+# Economy & safety
+income: 0.7
+cost_of_living: 0.7
+crime_rate: 1.0
+
+# Urban & cultural
+city_proximity: 0.5
+cultural_attractions: 0.5
+concerts: 0.3

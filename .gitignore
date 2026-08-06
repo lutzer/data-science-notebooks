@@ -22,4 +22,8 @@ Thumbs.db
 
 # Data artifacts (uncomment / adjust as needed)
 data/*
-!data/.gitkeep
+!data/.
+
+course_material
+
+docs
