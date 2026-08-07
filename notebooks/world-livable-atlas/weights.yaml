@@ -4,23 +4,23 @@
 # source notebook so that higher raw values always mean "better".
 
 # Geography & environment
-water_proximity: 0.5
-mountain_proximity: 0.3
-temperature_pleasantness: 1.0
-precipitation_balance: 0.5
-climate_change_risk: 0.5
-air_quality: 1.0
+water_proximity: 0.8
+terrain_ruggedness: 0.3
+# temperature_pleasantness: 1.0
+# precipitation_balance: 0.5
+# climate_change_risk: 0.5
+# air_quality: 1.0
 
-# Economy & safety
-income: 0.7
-cost_of_living: 0.7
-crime_rate: 1.0
+# # Economy & safety
+# income: 0.7
+# cost_of_living: 0.7
+# crime_rate: 1.0
 
-# Urban & cultural
-city_proximity: 0.5
-cultural_attractions: 0.5
-concerts: 0.3
+# # Urban & cultural
+# city_proximity: 0.5
+# cultural_attractions: 0.5
+# concerts: 0.3
 
-# Population
-population_density: 0.5
-light_pollution: 0.3
+# # Population
+# population_density: 0.5
+# light_pollution: 0.3

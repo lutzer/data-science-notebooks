@@ -8,6 +8,8 @@ from pathlib import Path
 
 import xarray as xr
 import yaml
+import httpx
+from tqdm import tqdm
 
 _ROOT = Path(__file__).resolve().parent
 DATA_DIR = _ROOT.parent.parent / "data" / "world-livable-atlas"
@@ -62,3 +64,77 @@ def save_variable(da, name):
     out = PROCESSED_DIR / f"{name}.nc"
     da.to_netcdf(out)
     return out
+
+async def download(url: str, filename: str):
+    filepath = Path(filename)
+
+    # Create the parent directory if it doesn't exist
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(filepath, 'wb') as f:
+        async with httpx.AsyncClient() as client:
+            async with client.stream('GET', url) as r:
+                r.raise_for_status()
+                total = int(r.headers.get('content-length', 0))
+
+                tqdm_params = {
+                    'desc': url,
+                    'total': total,
+                    'miniters': 1,
+                    'unit': 'B',
+                    'unit_scale': True,
+                    'unit_divisor': 1024,
+                }
+                with tqdm(**tqdm_params) as pb:
+                    downloaded = r.num_bytes_downloaded
+                    async for chunk in r.aiter_bytes():
+                        pb.update(r.num_bytes_downloaded - downloaded)
+                        f.write(chunk)
+                        downloaded = r.num_bytes_downloaded
+
+
+def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
+    """Plot a gridded variable on a lat/lon world map.
+
+    Parameters
+    ----------
+    da : xr.DataArray or str
+        DataArray to plot, or the name of a layer to load from
+        ``PROCESSED_DIR/{name}.nc``.
+    ax : matplotlib.axes.Axes, optional
+        Axis to draw into. A new figure is created if omitted.
+    coastlines : bool
+        Overlay Natural Earth coastlines if the shapefile cached by
+        ``11_water_proximity.ipynb`` is available. Silently skipped otherwise.
+    title : str, optional
+        Axis title. Defaults to the DataArray name.
+    **kwargs
+        Forwarded to :meth:`xarray.DataArray.plot` (e.g. ``cmap``, ``vmin``,
+        ``vmax``, ``robust``).
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The axis the plot was drawn on.
+    """
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(12, 6))
+
+    da.plot(ax=ax, **{"cmap": "viridis", **kwargs})
+
+    if coastlines:
+        coast_zip = RAW_DIR / "water_proximity" / "ne_10m_coastline.zip"
+        if coast_zip.exists():
+            import geopandas as gpd
+
+            gpd.read_file(coast_zip).plot(ax=ax, color="black", linewidth=0.3)
+
+    ax.set_xlim(-180, 180)
+    ax.set_ylim(-90, 90)
+    ax.set_aspect("equal")
+    ax.set_title(title if title is not None else (da.name or ""))
+    ax.set_xlabel("longitude")
+    ax.set_ylabel("latitude")
+    return ax
