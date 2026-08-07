@@ -23,6 +23,7 @@ Thumbs.db
 # Data artifacts (uncomment / adjust as needed)
 data/*
 !data/.
+!data/world-livable-atlas/raw/air_quality/V5GL04.HybridPM25.Global.nc
 
 course_material
 
