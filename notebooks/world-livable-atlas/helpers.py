@@ -58,6 +58,34 @@ def normalize(da):
     return (da - lo) / (hi - lo) if hi > lo else da * 0
 
 
+def weighted_score(layers, weights):
+    """Combine normalized layers into a score with per-cell weight renormalization.
+
+    At each grid cell, weights are rescaled over only the layers that have a
+    value there, so a missing variable neither penalises nor discards the cell —
+    it simply does not contribute. A cell is NaN only where every layer is
+    missing.
+
+    Parameters
+    ----------
+    layers : dict[str, xarray.DataArray]
+        Normalized layers keyed by variable name. All layers must share the
+        same coordinates.
+    weights : dict[str, float]
+        Raw weights keyed by variable name. Rescaled to sum 1 across ``layers``
+        before use.
+
+    Returns
+    -------
+    xarray.DataArray
+        The weighted score.
+    """
+    active = normalize_weights({k: weights[k] for k in layers})
+    numerator = sum(w * layers[k].fillna(0) for k, w in active.items())
+    denominator = sum(w * layers[k].notnull() for k, w in active.items())
+    return numerator / denominator.where(denominator > 0)
+
+
 def save_variable(da, name):
     """Save ``da`` to ``processed/<name>.nc`` and return the path."""
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
