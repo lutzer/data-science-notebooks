@@ -4,10 +4,10 @@
 # source notebook so that higher raw values always mean "better".
 
 # Geography & environment
-water_proximity: 0.1
+sea_proximity: 0.1
 terrain_ruggedness: 0.3
 sun_hours: 0.5
-# temperature_pleasantness: 1.0
+temperature_pleasantness: 1.0
 # precipitation_balance: 0.5
 # climate_change_risk: 0.5
 air_quality: 2

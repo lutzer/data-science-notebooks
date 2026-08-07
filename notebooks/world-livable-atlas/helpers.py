@@ -93,6 +93,43 @@ def save_variable(da, name):
     da.to_netcdf(out)
     return out
 
+
+def compute_temperature_pleasantness(ideal_temp=20.0, tolerance=10.0, source=None):
+    """Collapse cached monthly apparent temperature into a pleasantness score.
+
+    Reads ``processed/_apparent_temp_monthly.nc`` (produced by
+    ``14_temperature_pleasantness.ipynb``) and applies a per-month triangular
+    comfort function around ``ideal_temp``. Annual pleasantness is the mean
+    across 12 months, in ``[0, 1]`` — higher is better.
+
+    Separated from the notebook so re-scoring with different preferences (an
+    interactive UI, a Dash app, a parameter sweep) does not need the notebook
+    or a re-fetch of NASA POWER data.
+
+    Parameters
+    ----------
+    ideal_temp : float
+        Preferred apparent temperature in °C.
+    tolerance : float
+        Half-width of the comfort band in °C. A month whose apparent
+        temperature deviates by more than ``tolerance`` from ``ideal_temp``
+        contributes 0 to the score.
+    source : pathlib.Path, optional
+        Override for the cached intermediate file (mainly for tests).
+
+    Returns
+    -------
+    xarray.DataArray
+        2D ``(lat, lon)`` pleasantness scalar in ``[0, 1]``.
+    """
+    import numpy as np
+
+    path = source or (PROCESSED_DIR / "_apparent_temp_monthly.nc")
+    at_monthly = xr.open_dataarray(path)
+    comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
+    return comfort.mean("month")
+
+
 async def download(url: str, filename: str):
     filepath = Path(filename)
 
