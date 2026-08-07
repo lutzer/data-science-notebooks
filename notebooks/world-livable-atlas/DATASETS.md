@@ -5,6 +5,8 @@ freely available, yearly-averaged datasets that don't require heavy
 preprocessing. Where a city list is used, geocode it and snap to the
 nearest grid cell.
 
+Always try to use the most recent data.
+
 Each metric is tagged with a **confidence tier**:
 
 - 🟢 **Tier A** — clean global raster, high resolution, minimal preprocessing
@@ -15,14 +17,14 @@ Each metric is tagged with a **confidence tier**:
 
 ## Environment
 
-### water_proximity 🟢
+### 11 water_proximity 🟢
 Distance from each grid cell to the nearest coastline.
 
 - **Dataset:** [Natural Earth coastlines](https://www.naturalearthdata.com/downloads/10m-physical-vectors/) or [OpenStreetMap coastline extracts](https://osmdata.openstreetmap.de/data/coastlines.html)
 - **Method:** raster distance transform from coastline vector to grid.
 - Simple, no real judgment calls.
 
-### terrain_ruggedness *(renamed from mountain_proximity)* 🟢
+### 12 terrain_ruggedness *(renamed from mountain_proximity)* 🟢
 Measures slope / elevation variance within a cell — i.e. how mountainous
 the terrain is, not distance to mountains.
 
@@ -30,13 +32,13 @@ the terrain is, not distance to mountains.
 - **Method:** compute slope/elevation std-dev per cell.
 - Note: consider a U-shaped preference curve — some people want mountain views, others want flat land — rather than treating "more rugged = worse" monotonically.
 
-### sun_hours 🟢
+### 13 sun_hours 🟢
 Annual sunshine hours per grid cell.
 
 - **Dataset:** [NASA POWER](https://power.larc.nasa.gov/) — free API, global, daily/monthly since 1981.
 - Clean, well-maintained, yearly averages trivial to compute.
 
-### temperature_pleasantness 🟡
+### 14 temperature_pleasantness 🟡
 Formula still to be decided. Suggested approach: don't use raw temperature —
 use apparent/perceived temperature (accounts for humidity), and penalize
 deviation from a comfortable range (~18–22°C).
@@ -44,14 +46,14 @@ deviation from a comfortable range (~18–22°C).
 - **Dataset:** [ERA5 reanalysis](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels) (Copernicus Climate Data Store) — temperature, humidity, wind, ~9–31km resolution, hourly to yearly.
 - **Method suggestion:** compute Heat Index or Wet-Bulb Globe Temperature per cell as the pleasantness proxy instead of inventing a formula from scratch.
 
-### precipitation_balance 🟡
+### 15 precipitation_balance 🟡
 Formula still to be decided. "Balance" likely means moderate total rainfall
 + few extreme wet/dry spells, not just a rainy-day count.
 
 - **Dataset:** [ERA5](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels) or [CHIRPS](https://www.chc.ucsb.edu/data/chirps) (~5km resolution, better for rainy-day counting).
 - **Method suggestion:** penalize drought days and days over a heavy-rain mm threshold; reward days in a "light rain" band.
 
-### climate_change_risk 🟡
+### 16 climate_change_risk 🟡
 Risk of negative impact from climate change, per cell (not current hazard —
 that's a separate metric, see note below).
 
@@ -59,7 +61,7 @@ that's a separate metric, see note below).
 - Avoid country-level indices like ND-GAIN/World Bank CCKP for this — they won't give real per-cell variation.
 - **Optional addition:** `natural_disaster_risk` (current hazard exposure — earthquake, flood, cyclone, wildfire) via [World Bank/GFDRR ThinkHazard](https://thinkhazard.org/) or NASA/Columbia's Global Multihazard dataset. Distinct from climate *change* risk — worth adding if you want current vs. future risk separated.
 
-### air_quality 🟢
+### 17 air_quality 🟢
 Air pollution level (e.g. PM2.5) per grid cell.
 
 - **Dataset:** [Van Donkelaar et al. global PM2.5 surfaces](https://sites.wustl.edu/acag/datasets/surface-pm2-5/) (~1km, annual, widely used in health research) or [Copernicus CAMS](https://atmosphere.copernicus.eu/)
