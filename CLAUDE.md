@@ -26,3 +26,7 @@ When adding a dependency, edit `environment.yml` (channel: `conda-forge`) and ru
 - `environment.yml` — the single source of truth for dependencies.
 
 There is no test suite, linter, or build step — this is a notebook workspace, not an application. Verification means running the relevant notebook cells.
+
+## Gotchas
+
+* generate doc strings for all helper functions

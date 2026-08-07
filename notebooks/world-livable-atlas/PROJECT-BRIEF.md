@@ -1,4 +1,12 @@
-Great project — this is basically building a personal "livability index." Here's how to think about data sources for each variable, plus a few architectural decisions you'll want to make early.
+# Project Description
+
+|  |  |
+| --- | --- |
+| Name | World Liveable Atlas |
+| Description | Lorem ipsum |
+
+## Datasets
+
 
 ## Geography & environment
 

@@ -20,3 +20,7 @@ crime_rate: 1.0
 city_proximity: 0.5
 cultural_attractions: 0.5
 concerts: 0.3
+
+# Population
+population_density: 0.5
+light_pollution: 0.3
