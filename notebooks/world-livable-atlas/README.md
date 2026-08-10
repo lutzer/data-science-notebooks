@@ -19,7 +19,7 @@ Only the framework notebooks are scaffolded:
 - `90_scoring.ipynb` — normalize + weighted sum
 - `99_atlas_map.ipynb` — choropleth + interactive re-weighting
 
-Weights live in `weights.yaml`. Shared helpers live in `helpers.py` (`RAW_DIR`, `PROCESSED_DIR`, `load_grid`, `load_weights`, `normalize_weights`, `load_layers`, `normalize`, `save_variable`) — all four scaffolded notebooks import from it.
+Weights live in `weights.yaml`. Shared helpers live in `common.py` (`RAW_DIR`, `PROCESSED_DIR`, `load_grid`, `load_weights`, `normalize_weights`, `load_layers`, `normalize`, `save_variable`, `plot_map`, `download`, `download_nasa_power_dataset`, `compute_temperature_pleasantness`, `weighted_score`) — notebooks import from it.
 
 ## Data
 
