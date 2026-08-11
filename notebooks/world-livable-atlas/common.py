@@ -206,6 +206,44 @@ def compute_temperature_pleasantness(source : str, ideal_temp=20.0, tolerance=10
     comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
     return comfort.mean("month")
 
+def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60.0):
+    """Collapse cached monthly precipitation into a balance score.
+
+    Reads ``processed/_precipitation_monthly.nc`` (produced by
+    ``16_precipitation_balance.ipynb``) and applies a per-month triangular
+    comfort function around ``ideal_monthly_mm``. Annual balance is the mean
+    across 12 months, in ``[0, 1]`` — higher is better. Both drought months
+    and deluge months score low, so seasonal monsoon climates are penalised
+    relative to steadily-moist temperate ones even if their annual totals
+    look similar.
+
+    Separated from the notebook so re-scoring with different preferences (an
+    interactive UI, a Dash app, a parameter sweep) does not need the notebook
+    or a re-fetch of NASA POWER data.
+
+    Parameters
+    ----------
+    source : pathlib.Path
+        Path to the cached monthly-precipitation NetCDF, mm per month on the
+        atlas grid.
+    ideal_monthly_mm : float
+        Preferred monthly precipitation total in mm.
+    tolerance_mm : float
+        Half-width of the comfort band in mm. A month whose total deviates by
+        more than ``tolerance_mm`` from ``ideal_monthly_mm`` contributes 0.
+
+    Returns
+    -------
+    xarray.DataArray
+        2D ``(lat, lon)`` balance scalar in ``[0, 1]``.
+    """
+    import numpy as np
+
+    precip_monthly = xr.open_dataarray(source)
+    comfort = (1 - np.abs(precip_monthly - ideal_monthly_mm) / tolerance_mm).clip(0, 1)
+    return comfort.mean("month")
+
+
 NATURAL_DISASTER_DEFAULT_WEIGHTS = {
     'earthquake': 1.0,
     'cyclone':    1.0,

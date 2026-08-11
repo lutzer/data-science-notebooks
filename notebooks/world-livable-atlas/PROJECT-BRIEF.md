@@ -7,6 +7,9 @@
 
 ## Datasets
 
+* should be as complete as possible.
+* should preferbly be small downloads
+* should be publicly accessible
 
 ## Geography & environment
 
