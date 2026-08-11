@@ -67,6 +67,18 @@ Air pollution level (e.g. PM2.5) per grid cell.
 - **Dataset:** [Van Donkelaar et al. global PM2.5 surfaces](https://sites.wustl.edu/acag/datasets/surface-pm2-5/) (~1km, annual, widely used in health research) or [Copernicus CAMS](https://atmosphere.copernicus.eu/)
 - Solid, well-established.
 
+### 18 Natural Diaster Risk 🟡
+
+Categorical hazard levels from **[GFDRR ThinkHazard!](https://thinkhazard.org)** (World Bank / GFDRR), fetched via its [public JSON API](https://gfdrr.github.io/thinkhazard/api/). For each of 43,202 divisions (https://gfdrr.github.io/thinkhazard/divisions_flat.json) returned from  the API returns a level (`Very Low`, `Low`, `Medium`, `High`, or `No Data`) per hazard type 
+
+First step is to connect the divisions to actual coordinates using these boundaries: https://datacatalog.worldbank.org/search/dataset/0038272/world-bank-official-boundaries
+
+Then fetch the data from: https://thinkhazard.org/en/report/<id>.json
+
+We encode those as 0–3, aggregate the three flood sub-types into a single `flood` layer, keep the seven hazards that map to `common.NATURAL_DISASTER_DEFAULT_WEIGHTS`, then rasterize country polygons (Natural Earth 50m via `regionmask`) onto the shared 0.5° atlas grid.
+
+The result is combined via `common.compute_natural_disaster_risk`, sign-inverted so higher = safer, and ocean cells are masked using `is_land` from `grid.nc`. Because ThinkHazard reports at ADM0, this is a country-level layer (🔴 Tier C in `DATASETS.md`) — values are flat inside each country border by construction.
+
 ---
 
 ## Economy & safety

@@ -94,6 +94,7 @@ def save_variable(da, name):
     return out
 
 async def download(url: str, filename: str):
+    """Downloads url to filename, shows progress bar"""
     filepath = Path(filename)
 
     # Create the parent directory if it doesn't exist
@@ -202,6 +203,56 @@ def compute_temperature_pleasantness(source : str, ideal_temp=20.0, tolerance=10
     at_monthly = xr.open_dataarray(path)
     comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
     return comfort.mean("month")
+
+NATURAL_DISASTER_DEFAULT_WEIGHTS = {
+    'earthquake': 1.0,
+    'cyclone':    1.0,
+    'flood':      1.0,
+    'wildfire':   0.5,
+    'landslide':  0.5,
+    'drought':    0.7,
+    'volcano':    0.3,
+}
+
+
+def compute_natural_disaster_risk(source, weights=NATURAL_DISASTER_DEFAULT_WEIGHTS):
+    """Weighted average of per-hazard risk layers.
+
+    Reads the intermediate ``processed/_hazards_by_type.nc`` (produced by
+    ``18_natural_disaster_risk.ipynb``), min-max normalizes each hazard layer
+    to ``[0, 1]``, then computes a weighted average across hazards. Hazards
+    listed in ``weights`` but absent from the file are silently skipped so
+    partial hazard sets still score.
+
+    Separated from the notebook so re-scoring with different preferences (an
+    interactive UI, a Dash app, a parameter sweep) does not need the notebook
+    or a re-fetch of the source data.
+
+    Parameters
+    ----------
+    source : pathlib.Path
+        Path to the intermediate NetCDF Dataset with one variable per hazard.
+    weights : dict[str, float], optional
+        Hazard name -> weight. Defaults to
+        :data:`NATURAL_DISASTER_DEFAULT_WEIGHTS`.
+
+    Returns
+    -------
+    xarray.DataArray
+        2D ``(lat, lon)`` risk score in ``[0, 1]`` — higher = more risk.
+        Sign inversion is the caller's responsibility.
+    """
+
+    ds = xr.open_dataset(source)
+    active = {h: w for h, w in weights.items() if h in ds.data_vars}
+    if not active:
+        raise ValueError(f"none of {list(weights)} present in {source}")
+
+    # Per-cell weight renormalization so a NaN in one hazard doesn't wipe the
+    # cell — the remaining hazards' weights are simply rescaled. Mirrors
+    # `weighted_score`, which the atlas uses at the top-level score stage.
+    layers = {h: normalize(ds[h]) for h in active}
+    return weighted_score(layers, active)
 
 
 def download_nasa_power_dataset(variable_raw_path: str, requested_param: str):
