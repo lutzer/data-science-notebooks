@@ -99,26 +99,38 @@ People per km² per grid cell.
 - **Dataset:** [GHSL](https://ghsl.jrc.ec.europa.eu/) or [WorldPop](https://www.worldpop.org/) — global, ~100m–1km resolution, yearly.
 - Cleanest dataset in the whole list — genuinely gridded, well-maintained.
 
-### 22 light_pollution 🟢
+### 22 urbanity 🟡
+How urban/built-up a grid cell is — distinct from population density
+(a dense high-rise district and a sprawling low-rise city can have similar
+urbanity but very different density). Scores higher if there is a big city in the vicinty. also scores higher if the city is considered to be more meaningful
+
+#### Data:
+* [Natural Earth 10m populated places](https://naturalearthdata.com/downloads/10m-cultural-vectors/10m-populated-places/) — coords + `POP_MAX` for ~7 300 cities. Base geometry.
+* [GaWC "The World According to GaWC" 2024](https://gawc.lboro.ac.uk/gawc-worlds/the-world-according-to-gawc/world-cities-2024/) — 335 world cities ranked Alpha++ … Sufficiency, scraped from the page's `<ul>` blocks with BeautifulSoup and cached as CSV.
+
+#### Method:
+GaWC tiers are joined onto Natural Earth by cleaned name (parentheticals stripped, a small alias table for `Bangalore`→`Bengaluru`, `Copenhagen`→`København`, etc.), reaching a ~99 % match rate. Each city's importance is `max(w_tier, w_pop)` where tier weights range 12 (Alpha++) → 1 (Sufficiency) and `w_pop = clip(log10(POP_MAX) − 4, 0, 2)` gives non-GaWC cities a population-based floor. Cities and grid cells are reprojected to Equal Earth (EPSG:8857) so distances are planar metres; a `cKDTree` returns each cell's neighbours within 1 500 km, and urbanity is the exponential-decay sum
+
+    urbanity(cell) = Σ importance_i · exp(−d_i / 220 km)
+
+giving a ~150 km half-life. Ocean cells are masked via `is_land`. Downgraded to 🟡 Tier B because the importance formula and decay length are real methodology choices.
+
+### 23 light_pollution 🟢
 Human-made light emitted per grid cell.
 
 - **Dataset:** [VIIRS Nighttime Lights (DNB)](https://eogdata.mines.edu/products/vnl/), NOAA — global, ~500m resolution, monthly composites, average to yearly.
 - Clean and reliable.
 
-### 23 internet_connectivity 🟢
+### 24 internet_connectivity 🟢
 Not in your original list, but worth considering as a modern-livability
 proxy with genuinely clean global grid data.
 
 - **Dataset:** [Ookla Speedtest Open Data](https://github.com/teamookla/ookla-open-data) — global, gridded, updated quarterly, free.
 
-### 24 urbanity 🟢
-How urban/built-up a grid cell is — distinct from population density
-(a dense high-rise district and a sprawling low-rise city can have similar
-urbanity but very different density).
 
 ---
 
-## Economy & safety
+## Social & Economy
 
 ### 31 income 🔴
 Average income of residents. Hardest metric to get at grid resolution —
@@ -150,9 +162,7 @@ How free the society living in that area is.
 
 ---
 
-## Urban & cultural
-
-
+## Cultural
 
 - **Dataset:** [GHSL Built-Up Surface](https://ghsl.jrc.ec.europa.eu/) or [ESA WorldCover](https://esa-worldcover.org/en) land cover classification.
 - **Recommendation:** clearly separate this from `population_density` (built-up surface area vs. people/km²) rather than letting them overlap/double-count.
