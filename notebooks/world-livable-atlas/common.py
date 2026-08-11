@@ -90,6 +90,8 @@ def save_variable(da, name):
     """Save ``da`` to ``processed/<name>.nc`` and return the path."""
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     out = PROCESSED_DIR / f"{name}.nc"
+    if Path(out).exists():
+        Path(out).unlink()
     da.to_netcdf(out)
     return out
 

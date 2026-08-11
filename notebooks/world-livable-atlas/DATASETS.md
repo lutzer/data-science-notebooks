@@ -46,20 +46,22 @@ deviation from a comfortable range (~18–22°C).
 - **Dataset:** [ERA5 reanalysis](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels) (Copernicus Climate Data Store) — temperature, humidity, wind, ~9–31km resolution, hourly to yearly.
 - **Method suggestion:** compute Heat Index or Wet-Bulb Globe Temperature per cell as the pleasantness proxy instead of inventing a formula from scratch.
 
-### 15 precipitation_balance 🟡
+### 15 annual_greenness
+
+Mean NDVI - Compute the annual mean on how green a place is
+
+#### Data sources for annual composites
+* MODIS MOD13Q1/A1 (NASA) — already gives 16-day NDVI/EVI composites; just average or max them across the year. Easiest path to an annual layer with minimal processing. 250m–1km resolution.
+* Copernicus Global Land Service — has ready-made annual vegetation indicators (e.g., FAPAR, LAI, NDVI) at global scale, free.
+* Sentinel-2 via Google Earth Engine — build your own annual composite (median/max) at 10m if you want higher resolution than MODIS; more compute but much finer detail.
+* Landsat annual composites (USGS) — some pre-built annual greenest-pixel composites exist (e.g., via GEE's LANDSAT/.../ANNUAL_GREENEST collections) — literally designed for this exact use case.
+
+### 16 precipitation_balance 🟡
 Formula still to be decided. "Balance" likely means moderate total rainfall
 + few extreme wet/dry spells, not just a rainy-day count.
 
 - **Dataset:** [ERA5](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels) or [CHIRPS](https://www.chc.ucsb.edu/data/chirps) (~5km resolution, better for rainy-day counting).
 - **Method suggestion:** penalize drought days and days over a heavy-rain mm threshold; reward days in a "light rain" band.
-
-### 16 climate_change_risk 🟡
-Risk of negative impact from climate change, per cell (not current hazard —
-that's a separate metric, see note below).
-
-- **Dataset:** [WorldClim future climate layers](https://www.worldclim.org/data/cmip6/cmip6climate.html) — CMIP6 projections downscaled to ~1km, gives 2050/2100 deltas vs. today.
-- Avoid country-level indices like ND-GAIN/World Bank CCKP for this — they won't give real per-cell variation.
-- **Optional addition:** `natural_disaster_risk` (current hazard exposure — earthquake, flood, cyclone, wildfire) via [World Bank/GFDRR ThinkHazard](https://thinkhazard.org/) or NASA/Columbia's Global Multihazard dataset. Distinct from climate *change* risk — worth adding if you want current vs. future risk separated.
 
 ### 17 air_quality 🟢
 Air pollution level (e.g. PM2.5) per grid cell.
@@ -78,6 +80,14 @@ Then fetch the data from: https://thinkhazard.org/en/report/<id>.json
 We encode those as 0–3, aggregate the three flood sub-types into a single `flood` layer, keep the seven hazards that map to `common.NATURAL_DISASTER_DEFAULT_WEIGHTS`, then rasterize country polygons (Natural Earth 50m via `regionmask`) onto the shared 0.5° atlas grid.
 
 The result is combined via `common.compute_natural_disaster_risk`, sign-inverted so higher = safer, and ocean cells are masked using `is_land` from `grid.nc`. Because ThinkHazard reports at ADM0, this is a country-level layer (🔴 Tier C in `DATASETS.md`) — values are flat inside each country border by construction.
+
+### 19 climate_change_risk 🟡
+Risk of negative impact from climate change, per cell (not current hazard —
+that's a separate metric, see note below).
+
+- **Dataset:** [WorldClim future climate layers](https://www.worldclim.org/data/cmip6/cmip6climate.html) — CMIP6 projections downscaled to ~1km, gives 2050/2100 deltas vs. today.
+- Avoid country-level indices like ND-GAIN/World Bank CCKP for this — they won't give real per-cell variation.
+- **Optional addition:** `natural_disaster_risk` (current hazard exposure — earthquake, flood, cyclone, wildfire) via [World Bank/GFDRR ThinkHazard](https://thinkhazard.org/) or NASA/Columbia's Global Multihazard dataset. Distinct from climate *change* risk — worth adding if you want current vs. future risk separated.
 
 ---
 
