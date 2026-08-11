@@ -91,30 +91,57 @@ that's the separate `natural_disaster_risk` metric).
 
 ---
 
+## Population & Infrastructure
+
+### 21 population_density 🟢
+People per km² per grid cell.
+
+- **Dataset:** [GHSL](https://ghsl.jrc.ec.europa.eu/) or [WorldPop](https://www.worldpop.org/) — global, ~100m–1km resolution, yearly.
+- Cleanest dataset in the whole list — genuinely gridded, well-maintained.
+
+### 22 light_pollution 🟢
+Human-made light emitted per grid cell.
+
+- **Dataset:** [VIIRS Nighttime Lights (DNB)](https://eogdata.mines.edu/products/vnl/), NOAA — global, ~500m resolution, monthly composites, average to yearly.
+- Clean and reliable.
+
+### 23 internet_connectivity 🟢
+Not in your original list, but worth considering as a modern-livability
+proxy with genuinely clean global grid data.
+
+- **Dataset:** [Ookla Speedtest Open Data](https://github.com/teamookla/ookla-open-data) — global, gridded, updated quarterly, free.
+
+### 24 urbanity 🟢
+How urban/built-up a grid cell is — distinct from population density
+(a dense high-rise district and a sprawling low-rise city can have similar
+urbanity but very different density).
+
+---
+
 ## Economy & safety
 
-### income 🔴
+### 31 income 🔴
 Average income of residents. Hardest metric to get at grid resolution —
 no true global gridded income dataset exists.
 
 - **Dataset:** [Kummu et al. gridded GDP/HDI dataset](https://www.nature.com/articles/sdata20184) (~5–10km resolution) or nightlight-derived income proxies (VIIRS + regression, common in economics literature).
 - **Caveat:** expect country/region-level smearing across cells in that area — decide upfront whether that's acceptable.
 
-### cost_of_living 🔴
+### 32 cost_of_living 🔴
 Cost of a good life in that grid cell.
 
 - **Dataset:** [Numbeo](https://www.numbeo.com/cost-of-living/) — city-level only, requires scraping/API.
 - **Method:** snap to nearest city value within a radius, decay/interpolate outward. No raw global raster exists.
 - Most manual-effort metric on the list.
 
-### crime_rate 🔴
+### 33 crime_rate 🔴
 How violent/unsafe an area is.
 
 - **Dataset:** [UNODC crime statistics](https://dataunodc.un.org/) — country-level, inconsistent reporting methodology across countries.
 - Gridded/city-level data only exists for a handful of countries with open crime mapping (US, UK, some EU).
 - **Recommendation:** consider keeping this as a country-level modifier and clearly labeling it lower-confidence, rather than presenting it as gridded fact.
 
-### freedom 🔴 *(new)*
+### 34 social_freedom 🔴 *(new)*
 How free the society living in that area is.
 
 - **Dataset:** [Freedom House](https://freedomhouse.org/report/freedom-world), [V-Dem](https://v-dem.net/), or [Economist Democracy Index](https://www.eiu.com/n/campaigns/democracy-index-2024/)
@@ -125,21 +152,18 @@ How free the society living in that area is.
 
 ## Urban & cultural
 
-### urbanity 🟢
-How urban/built-up a grid cell is — distinct from population density
-(a dense high-rise district and a sprawling low-rise city can have similar
-urbanity but very different density).
+
 
 - **Dataset:** [GHSL Built-Up Surface](https://ghsl.jrc.ec.europa.eu/) or [ESA WorldCover](https://esa-worldcover.org/en) land cover classification.
 - **Recommendation:** clearly separate this from `population_density` (built-up surface area vs. people/km²) rather than letting them overlap/double-count.
 
-### cultural_attractions 🟡
+### 41 cultural_attractions 🟡
 Number/density of cultural attractions in an area.
 
 - **Dataset:** [OpenStreetMap POIs](https://www.openstreetmap.org/) — tags like `tourism=museum`, `historic=*`, `tourism=attraction`. Free, global.
 - **Caveat:** coverage quality varies heavily by country (rich in Europe/US, sparse in parts of Africa/Asia). This will bias results toward "the West has more culture" as a data artifact — worth flagging explicitly in your methodology notes.
 
-### music_and_concerts 🔴
+### 42 music_and_concerts 🔴
 Artists residing in an area, concerts played.
 
 - No global gridded dataset exists for this.
@@ -150,27 +174,7 @@ Artists residing in an area, concerts played.
 
 ---
 
-## Population
 
-### population_density 🟢
-People per km² per grid cell.
-
-- **Dataset:** [GHSL](https://ghsl.jrc.ec.europa.eu/) or [WorldPop](https://www.worldpop.org/) — global, ~100m–1km resolution, yearly.
-- Cleanest dataset in the whole list — genuinely gridded, well-maintained.
-
-### light_pollution 🟢
-Human-made light emitted per grid cell.
-
-- **Dataset:** [VIIRS Nighttime Lights (DNB)](https://eogdata.mines.edu/products/vnl/), NOAA — global, ~500m resolution, monthly composites, average to yearly.
-- Clean and reliable.
-
-### *(optional addition)* internet_connectivity 🟢
-Not in your original list, but worth considering as a modern-livability
-proxy with genuinely clean global grid data.
-
-- **Dataset:** [Ookla Speedtest Open Data](https://github.com/teamookla/ookla-open-data) — global, gridded, updated quarterly, free.
-
----
 
 ## Cross-cutting notes
 

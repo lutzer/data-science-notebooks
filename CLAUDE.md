@@ -27,6 +27,10 @@ When adding a dependency, edit `environment.yml` (channel: `conda-forge`) and ru
 
 There is no test suite, linter, or build step — this is a notebook workspace, not an application. Verification means running the relevant notebook cells.
 
+## Projects
+
+* **world-livable-atlas:** Read notebooks/world-livable-atlas/README.md + PROJECT-BRIEF.md + DATASETS.md before implementing anything for that project.
+
 ## Gotchas
 
 * generate doc strings for all helper functions

@@ -244,6 +244,54 @@ def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60
     return comfort.mean("month")
 
 
+def compute_population_density_score(source, ideal_density, tolerance_decades=1.0):
+    """Score cells by how close their density is to a preferred value.
+
+    Reads ``processed/population_density.nc`` (produced by
+    ``21_population_density.ipynb``) — raw density in people/km² — and returns
+    a ``[0, 1]`` comfort score. The score is 1 where cell density equals
+    ``ideal_density`` and drops linearly *in log10 space* to 0 at
+    ``10 ** ±tolerance_decades × ideal_density``.
+
+    Working in log space is essential because density spans ~5 orders of
+    magnitude between wilderness (~0.01/km²) and megacity cores (~10⁴/km²),
+    so a linear tolerance would either ignore the low end or collapse the
+    high end. A single ``tolerance_decades`` therefore controls both tails
+    symmetrically: 1.0 means "half score one decade away from ideal, zero two
+    decades away."
+
+    Separated from the notebook so re-scoring with different preferences (an
+    interactive UI, a Dash app, a parameter sweep) does not need the notebook
+    or a re-fetch of GHS-POP.
+
+    Parameters
+    ----------
+    source : pathlib.Path
+        Path to the raw density NetCDF (people/km² on the atlas grid).
+    ideal_density : float
+        Preferred population density in people/km². Suggested presets:
+        wilderness ≈ 0.1, rural ≈ 30, suburb ≈ 500, urban ≈ 3000.
+    tolerance_decades : float, optional
+        Half-width of the comfort band in log10 units. Densities that differ
+        from ``ideal_density`` by more than this many decades score 0.
+
+    Returns
+    -------
+    xarray.DataArray
+        2D ``(lat, lon)`` score in ``[0, 1]`` — higher = closer to the
+        preferred density. Ocean NaNs from the source layer are preserved.
+    """
+    import numpy as np
+
+    # Clip to a minimum so log10(0)=-inf doesn't propagate. 1e-3 people/km²
+    # is "effectively uninhabited" and roughly the level at which further
+    # emptiness is indistinguishable from a preference standpoint.
+    FLOOR = 1e-3
+    density = xr.open_dataarray(source)
+    log_delta = np.abs(np.log10(density.clip(min=FLOOR)) - np.log10(max(ideal_density, FLOOR)))
+    return (1 - log_delta / tolerance_decades).clip(0, 1)
+
+
 NATURAL_DISASTER_DEFAULT_WEIGHTS = {
     'earthquake': 1.0,
     'cyclone':    1.0,
