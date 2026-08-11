@@ -81,13 +81,13 @@ We encode those as 0–3, aggregate the three flood sub-types into a single `flo
 
 The result is combined via `common.compute_natural_disaster_risk`, sign-inverted so higher = safer, and ocean cells are masked using `is_land` from `grid.nc`. Because ThinkHazard reports at ADM0, this is a country-level layer (🔴 Tier C in `DATASETS.md`) — values are flat inside each country border by construction.
 
-### 19 climate_change_risk 🟡
-Risk of negative impact from climate change, per cell (not current hazard —
-that's a separate metric, see note below).
+### 19 climate_change_risk 🔴
+Risk of negative impact from climate change, per country (not current hazard —
+that's the separate `natural_disaster_risk` metric).
 
-- **Dataset:** [WorldClim future climate layers](https://www.worldclim.org/data/cmip6/cmip6climate.html) — CMIP6 projections downscaled to ~1km, gives 2050/2100 deltas vs. today.
-- Avoid country-level indices like ND-GAIN/World Bank CCKP for this — they won't give real per-cell variation.
-- **Optional addition:** `natural_disaster_risk` (current hazard exposure — earthquake, flood, cyclone, wildfire) via [World Bank/GFDRR ThinkHazard](https://thinkhazard.org/) or NASA/Columbia's Global Multihazard dataset. Distinct from climate *change* risk — worth adding if you want current vs. future risk separated.
+- **Dataset:** [ND-GAIN Country Index](https://gain.nd.edu/our-work/country-index/) (Notre Dame Global Adaptation Initiative) — annual `[0, 1]` *Vulnerability* score per country, aggregated from exposure, sensitivity, and adaptive capacity across food, water, health, ecosystems, human habitat, and infrastructure. Full yearly CSV bundle downloadable directly.
+- **Method:** take the latest available year of `vulnerability.csv`, join to Natural Earth 50m admin_0 polygons by ISO3, rasterize via `regionmask` onto the shared 0.5° grid, sign-invert so higher = safer, mask ocean via `is_land` from `grid.nc`. Country-level — flat inside each border by construction, downgraded to 🔴 Tier C.
+- **Originally listed dataset:** [XDI Gross Domestic Climate Risk](https://xdi.systems/news/2024-xdi-gross-domestic-climate-risk-report) — ranks 2,600+ sub-national jurisdictions by 2050 modelled built-environment damage from flooding, forest fires, and sea level rise. Only summary rankings are public; the full dataset is gated behind `media@xdi.systems`, so ND-GAIN was substituted as the closest freely-downloadable equivalent.
 
 ---
 

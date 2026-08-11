@@ -1,6 +1,6 @@
 # World Livable Atlas
 
-A personal livability index scored on a 0.5° global grid. See `PROJECT-BRIEF.md` for the full data-source discussion.
+A personal livability index scored on a global grid. See `PROJECT-BRIEF.md` for the full data-source discussion.
 
 ## Structure
 
