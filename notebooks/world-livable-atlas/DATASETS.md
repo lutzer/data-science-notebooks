@@ -121,6 +121,12 @@ proxy with genuinely clean global grid data.
 
 - **Dataset:** [Ookla Speedtest Open Data](https://github.com/teamookla/ookla-open-data) — global, gridded, updated quarterly, free.
 
+### 24 healthcare_access 🟢
+Motorized land travel time (minutes) to the nearest hospital or clinic, from **[Weiss et al. 2020](https://malariaatlas.org/project-resources/accessibility-to-healthcare/)** (MAP / Oxford / Telethon Kids / Google / U. Twente) — a 30 arc-second (~1 km) global GeoTIFF covering 85°N to 60°S, distributed as a zip via the MAP data portal's `DirectDownload` endpoint.
+
+- **Dataset:** `Explorer:2020_motorized_travel_time_to_healthcare` from `data.malariaatlas.org`. A `walking_only` sibling exists for the pedestrian scenario; switch `PRODUCT` in the notebook to score that instead.
+- **Method:** stream the raster block-by-block with `rasterio.Window` reads (same pattern as `21_population_density.ipynb`), compute a per-cell mean of `log10(1 + minutes)` across ~3600 source pixels per 0.5° atlas cell, then sign-invert so higher = shorter access = better. The log transform is essential because travel time spans four orders of magnitude between city cores and remote wilderness — an arithmetic mean would let a handful of unreachable pixels dominate a cell that's otherwise well-served.
+- Ocean is masked via `is_land` from `grid.nc`; polar cells outside Weiss's ±latitude coverage stay `NaN` and are ignored by `weighted_score`'s per-cell weight renormalization.
 
 ---
 

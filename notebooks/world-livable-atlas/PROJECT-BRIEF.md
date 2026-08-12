@@ -11,7 +11,9 @@
 * should preferbly be small downloads
 * should be publicly accessible
 
-## Geography & environment
+## Suggested Sources
+
+**Use DATASETS.md as the source of information instead of this**
 
 **Closeness to water / mountains**
 - OpenStreetMap (via the Overpass API or the `osmnx` Python library) has coastlines, rivers, lakes, and elevation-tagged features — free and global.
@@ -27,8 +29,6 @@
 - Notre Dame Global Adaptation Initiative (ND-GAIN) has a country-level climate vulnerability index — much easier to work with than raw climate models if you want something simple.
 - Climate Central or World Bank Climate Change Knowledge Portal for additional risk indicators (flooding, heat days, etc.)
 
-## Economic
-
 **Income**
 - World Bank Open Data (GDP per capita, by country).
 - For sub-national/city-level: Eurostat (Europe), U.S. Census/BLS (US), or Numbeo (crowdsourced, global, city-level).
@@ -36,8 +36,6 @@
 **Living costs**
 - Numbeo (numbeo.com) is the standard here — crowdsourced cost-of-living indices by city, with an API for scraping if you're careful about rate limits.
 - Expatistan is a similar alternative.
-
-## Environment & safety
 
 **Air quality**
 - OpenAQ (openaq.org) — free, real-time and historical air quality data from monitoring stations worldwide, has an API.
@@ -48,8 +46,6 @@
 - UNODC (UN Office on Drugs and Crime) has country-level data.
 - Numbeo again has a crowdsourced city-level Safety Index.
 - For specific countries, national police/statistics agencies (e.g., FBI UCR for the US, Eurostat for the EU) are more reliable if you're focusing regionally.
-
-## Urban / cultural
 
 **Closeness to a bigger city**
 - Derivable yourself: take a list of city coordinates + population (GeoNames or the Natural Earth "populated places" dataset) and compute distances from any point.
