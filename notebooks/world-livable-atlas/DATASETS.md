@@ -115,13 +115,7 @@ GaWC tiers are joined onto Natural Earth by cleaned name (parentheticals strippe
 
 giving a ~150 km half-life. Ocean cells are masked via `is_land`. Downgraded to 🟡 Tier B because the importance formula and decay length are real methodology choices.
 
-### 23 light_pollution 🟢
-Human-made light emitted per grid cell.
-
-- **Dataset:** [VIIRS Nighttime Lights (DNB)](https://eogdata.mines.edu/products/vnl/), NOAA — global, ~500m resolution, monthly composites, average to yearly.
-- Clean and reliable.
-
-### 24 internet_connectivity 🟢
+### 23 internet_connectivity 🟢
 Not in your original list, but worth considering as a modern-livability
 proxy with genuinely clean global grid data.
 

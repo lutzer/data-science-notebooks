@@ -14,8 +14,7 @@ climate_vulnerability: 1.0
 natural_disaster_risk: 1.0
 air_quality: 1.0
 
-# Population
+# Population & infrastructure
 population_density: 1.0
-
-# Urban & cultural
 urbanity: 1.0
+internet_connectivity: 1.0
