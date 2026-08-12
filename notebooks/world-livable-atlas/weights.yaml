@@ -19,3 +19,6 @@ population_density: 1.0
 urbanity: 1.0
 internet_connectivity: 1.0
 healthcare_access: 1.0
+
+# Social & economy
+income: 1.0

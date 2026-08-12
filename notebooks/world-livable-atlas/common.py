@@ -153,7 +153,7 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
     if ax is None:
         _, ax = plt.subplots(figsize=(12, 6))
 
-    da.plot(ax=ax, **{"cmap": "viridis", **kwargs})
+    da.plot(ax=ax, **{"cmap": "RdYlGn", **kwargs})
 
     if coastlines:
         coast_zip = RAW_DIR / "water_proximity" / "ne_10m_coastline.zip"
