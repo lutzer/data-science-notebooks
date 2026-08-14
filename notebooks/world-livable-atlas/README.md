@@ -84,3 +84,4 @@ Then open notebooks in numeric order.
 ## TODO
 
 * adjust falloff of sea proximity
+* visualization plotly or folium? or choropleth
