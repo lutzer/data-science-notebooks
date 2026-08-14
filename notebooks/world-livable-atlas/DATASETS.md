@@ -169,14 +169,24 @@ How violent/unsafe an area is.
 
 
 
-### 34 social_freedom 🔴 *(new)*
-How free the society living in that area is.
+### 34 human_freedom 🔴
+How free the society living in that area is. Blended from two sources so we get both cross-country ranking and some sub-national texture in conflict zones:
 
-- **Dataset:** [Freedom House](https://freedomhouse.org/report/freedom-world), [V-Dem](https://v-dem.net/), or [Economist Democracy Index](https://www.eiu.com/n/campaigns/democracy-index-2024/)
-- Inherently country-level — no sub-national "freedom" data exists in these indices.
-- **Recommendation:** apply as a flat modifier per country rather than a true grid metric; document this so it's clear it's not meant to vary within a country's borders.
+- **Country baseline:** **V-Dem [Liberal Democracy Index](https://v-dem.net/) (`v2x_libdem`)**, the composite `[0, 1]` score aggregating elected officials, clean elections, freedoms of association / expression, and legislative + judicial constraints on the executive. Latest year per country (currently 2025). Fetched as the [`vdemdata` GitHub RData asset](https://raw.githubusercontent.com/vdeminstitute/vdemdata/master/data/vdem.RData) — `pyreadr` reads it directly, avoiding the auth-walled Country-Year CSV on `v-dem.net`. Rasterized by joining `country_text_id` (ISO3) to Natural Earth 50m admin_0 polygons via `regionmask`, same pattern as `19_climate_vulnerability.ipynb`. V-Dem's "higher = freer" already matches the atlas convention, so **no sign inversion**.
+- **Repression overlay:** **[ACLED](https://acleddata.com)** `Violence against civilians` events from `ACLED_START..ACLED_END` (default 2020–2024), binned onto the 0.5° grid weighted by `fatalities`, transformed as `log10(1 + Σ fatalities)`, and min-max normalized to `[0, 1]`. Log is essential — fatality counts span >4 orders of magnitude between quiet cells and Bucha/Mariupol-scale flashpoints. Fetching requires (free) ACLED registration: set `ACLED_EMAIL`/`ACLED_KEY` env vars for the API path, or manually place `acled_events.csv` in `raw/human_freedom/`. If neither is available, the overlay is all-zero and the layer degrades to a country-flat V-Dem map.
+- **Blend:** `freedom(cell) = clip(v2x_libdem_country − ACLED_PENALTY · repression(cell), 0, 1)`. `ACLED_PENALTY = 0.5` is a real methodology choice: it lets Xinjiang, eastern DRC, north-east Nigeria show visibly worse than their country mean without ever flipping a "Not Free" country into "Free" territory. Ocean masked via `is_land` from `grid.nc`.
+- **Coverage caveats:** V-Dem covers ~180 countries; small Pacific/Caribbean/Gulf states (Brunei, Belize, Bahamas, Micronesia, most SIDS) are absent and stay `NaN` — `weighted_score`'s per-cell weight renormalization tolerates this. Disputed territories are matched where V-Dem uses standard-adjacent codes (Kosovo `XKX`, Palestine `PSE`) but silently drop where Natural Earth reports `ISO_A3_EH = -99` (Somaliland, N. Cyprus). Still 🔴 Tier C — flat inside each country border by construction wherever ACLED doesn't reach.
 
-### 35 corruption
+Other candidate sources considered but not used: Freedom House FIW, Cato/Fraser HFI, Polity5, RSF, CIVICUS, WJP Rule of Law, Freedom on the Net, Political Terror Scale. V-Dem was picked as the flagship because it is the most methodologically transparent, longest-running, and publishes sub-indices that could later be swapped in without redoing the pipeline.
+
+### 35 corruption 🔴
+How much political corruption is present in the society living in that grid cell.
+
+- **Dataset:** **V-Dem [Political Corruption Index](https://v-dem.net/) (`v2x_corr`)** — `[0, 1]` composite of executive, legislative, judicial, and public-sector corruption. Latest year per country (currently 2025). Fetched from the same [`vdemdata` GitHub RData asset](https://raw.githubusercontent.com/vdeminstitute/vdemdata/master/data/vdem.RData) already cached by `34_human_freedom.ipynb`, so no new download.
+- **Method:** take the latest available year of `v2x_corr` per `country_text_id` (ISO3), join to Natural Earth 50m admin_0 polygons, rasterize via `regionmask` onto the shared 0.5° grid, **sign-invert** (V-Dem's convention is higher = more corrupt, atlas convention is higher = better), mask ocean via `is_land` from `grid.nc`. Same pattern as `19_climate_vulnerability.ipynb` and `34_human_freedom.ipynb`.
+- **Why V-Dem over CPI / WGI:** both Transparency International's CPI (~13 upstream sources) and the World Bank WGI Control of Corruption (~30 upstream sources) are aggregations-of-aggregations that include V-Dem as an input. Using V-Dem directly is more methodologically transparent and reuses infrastructure the atlas already has in place. Sub-indices (`v2x_execorr`, `v2x_pubcorr`, etc.) remain available if we ever want to break the score down further.
+- **Coverage caveats:** V-Dem covers ~180 countries; small Pacific / Caribbean / Gulf states (Brunei, Belize, Bahamas, Micronesia, most SIDS) are absent and stay `NaN` — `weighted_score`'s per-cell weight renormalization tolerates this. Country-level — flat inside each country border by construction, 🔴 Tier C.
+- **Not used:** Transparency International CPI, World Bank WGI Control of Corruption (`CC.EST`), ICRG Political Risk Services. All would give broadly the same country ranking; the first two are documented above, ICRG is paywalled.
 
 ---
 

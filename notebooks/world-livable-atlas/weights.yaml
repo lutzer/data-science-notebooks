@@ -24,3 +24,5 @@ healthcare_access: 1.0
 income: 1.0
 cost_of_living: 1.0
 crime_rate: 1.0
+human_freedom: 1.0
+corruption: 1.0
