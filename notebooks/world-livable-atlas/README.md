@@ -1,6 +1,6 @@
 # World Livable Atlas
 
-A personal livability index scored on a global grid. See `PROJECT-BRIEF.md` for the full data-source discussion.
+A personal livability index scored on a global grid. See `PROJECT-BRIEF.md` for the full data-source discussion. Datasources and methods are described in `DATASETS.md`
 
 ## Structure
 
@@ -43,3 +43,7 @@ jupyter lab
 ```
 
 Then open notebooks in numeric order.
+
+## TODO
+
+* adjust falloff of sea proximity

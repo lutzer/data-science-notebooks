@@ -128,6 +128,11 @@ Motorized land travel time (minutes) to the nearest hospital or clinic, from **[
 - **Method:** stream the raster block-by-block with `rasterio.Window` reads (same pattern as `21_population_density.ipynb`), compute a per-cell mean of `log10(1 + minutes)` across ~3600 source pixels per 0.5° atlas cell, then sign-invert so higher = shorter access = better. The log transform is essential because travel time spans four orders of magnitude between city cores and remote wilderness — an arithmetic mean would let a handful of unreachable pixels dominate a cell that's otherwise well-served.
 - Ocean is masked via `is_land` from `grid.nc`; polar cells outside Weiss's ±latitude coverage stay `NaN` and are ignored by `weighted_score`'s per-cell weight renormalization.
 
+
+### 25 transportation
+
+### 26 water quality
+
 ---
 
 ## Social & Economy
@@ -142,16 +147,27 @@ no true global gridded income dataset exists.
 ### 32 cost_of_living 🔴
 Cost of a good life in that grid cell.
 
-- **Dataset:** [Numbeo](https://www.numbeo.com/cost-of-living/) — city-level only, requires scraping/API.
+- **Dataset:** 
+1.[Numbeo](https://www.numbeo.com/cost-of-living/) — city-level only, requires scraping/API.
 - **Method:** snap to nearest city value within a radius, decay/interpolate outward. No raw global raster exists.
 - Most manual-effort metric on the list.
+
+2. Meta/Data for Good Relative Wealth Index — good for LMIC granularity
+Provided for 93 low and middle-income countries at 2.4km resolution, built from satellite imagery, mobile phone network data, and topographic maps, validated against household survey data. Great for sub-national texture in countries where Numbeo has almost no city entries (most of Africa, Central Asia, etc.), but it's relative within-country only — no cross-country comparability, and no coverage for high-income countries.
+
+3. World Bank ICP Price Level Index (PLI) — country-level, but a genuine price-level measure (not just GDP).
 
 ### 33 crime_rate 🔴
 How violent/unsafe an area is.
 
-- **Dataset:** [UNODC crime statistics](https://dataunodc.un.org/) — country-level, inconsistent reporting methodology across countries.
-- Gridded/city-level data only exists for a handful of countries with open crime mapping (US, UK, some EU).
-- **Recommendation:** consider keeping this as a country-level modifier and clearly labeling it lower-confidence, rather than presenting it as gridded fact.
+- **Country baseline:** [World Bank `VC.IHR.PSRC.P5`](https://data.worldbank.org/indicator/VC.IHR.PSRC.P5) — UNODC intentional homicide rate per 100 000 people, latest available year per country, fetched as JSON from the WDI API. Rasterized by joining ISO3 codes to Natural Earth 50m admin_0 polygons via `regionmask` (same pattern as `19_climate_vulnerability.ipynb`). Homicide is the least-comparable-noisy UNODC series across jurisdictions.
+- **City overlay:** [Numbeo Crime Index](https://www.numbeo.com/crime/rankings_current.jsp) — ~400 cities, crowdsourced, city-level index roughly on `[0, 100]` (higher = more crime). Scraped once and cached. Cities are geocoded against Natural Earth 10m populated places using the same cascading `(city, country)` normaliser as `32_cost_of_living.ipynb`.
+- **Rescale:** Numbeo and UNODC live on different scales (~`0–100` vs ~`0–40`). A single global linear factor rescales all Numbeo values so `mean(country_means_numbeo) = mean(country_means_unodc)` over the countries covered by both — preserves within- and across-country ordering, but makes the two layers numerically comparable at the country-border seam.
+- **Blend:** city layer via `cKDTree` + exponential decay on Equal Earth (EPSG:8857) with a 50 km e-folding / 300 km cutoff, then straight `fillna` onto the UNODC country layer so Numbeo wins where present.
+- **Result:** sign-inverted so higher = safer, ocean-masked via `is_land` from `grid.nc`. Still 🔴 Tier C — flat inside country borders wherever Numbeo doesn't reach, and Numbeo itself is crowdsourced with uneven per-city sample size.
+- **Not implemented (yet):** FBI NIBRS / police.uk point-level aggregation for cell-resolution US/UK crime, and ACLED for conflict overlay. Both are described in earlier drafts of this section but would each need their own multi-source pipeline.
+
+
 
 ### 34 social_freedom 🔴 *(new)*
 How free the society living in that area is.
@@ -159,6 +175,8 @@ How free the society living in that area is.
 - **Dataset:** [Freedom House](https://freedomhouse.org/report/freedom-world), [V-Dem](https://v-dem.net/), or [Economist Democracy Index](https://www.eiu.com/n/campaigns/democracy-index-2024/)
 - Inherently country-level — no sub-national "freedom" data exists in these indices.
 - **Recommendation:** apply as a flat modifier per country rather than a true grid metric; document this so it's clear it's not meant to vary within a country's borders.
+
+### 35 corruption
 
 ---
 
@@ -211,3 +229,59 @@ Artists residing in an area, concerts played.
 5. **Yearly averages.** All suggested datasets support yearly aggregation
    (NASA POWER, ERA5, CHIRPS, VIIRS are monthly/daily → average up; GHSL,
    WorldPop, DEM sources are static or annual releases already).
+
+## Scaling
+
+If you add variables with different scales/variances directly, the weights you *specify* aren't the weights that actually drive the result. A variable with a wide spread (say, 0–10,000) will dominate the sum compared to one with a narrow spread (0–1), even if you give both a weight of 0.5. **Implicit variance dominates explicit weights** unless you normalize first.
+
+### Step 1: Normalize each variable onto a common scale
+
+Common options, in order of how often they're the right choice:
+
+**Z-score standardization** `(x - mean) / std`
+- Best default when variables are roughly unimodal/symmetric and you care about "how many standard deviations above/below average."
+- Puts everything on mean=0, sd=1, so your weights directly control contribution to variance.
+
+**Min-max scaling** `(x - min) / (max - min)` → [0,1]
+- Best when variables have meaningful, known bounds (e.g., a 0–100 test score, a 1–5 rating).
+- Sensitive to outliers — one extreme value compresses everything else.
+
+**Rank/percentile transformation**
+- Best when distributions are skewed, have outliers, or aren't comparable in nature (e.g., mixing a count variable with a ratio variable).
+- Very robust, but you lose information about magnitude of differences.
+
+**Robust scaling** `(x - median) / IQR`
+- Like z-score but resistant to outliers — good when your data has heavy tails or a few extreme values you don't want dominating.
+
+Rule of thumb: if any variable is skewed or has outliers, don't use raw min-max or z-score without first checking — either transform (log, etc.) or use rank-based scaling.
+
+### Step 2: Consider the shape of each distribution before you normalize
+
+- **Skewed variables** (income, counts, durations) — consider a log or Box-Cox transform *before* standardizing, otherwise a few outliers stretch the scale and compress everything else near zero.
+- **Bounded/ordinal variables** (Likert scales, percentages) — min-max is usually fine and more interpretable than z-scores.
+- **Multimodal variables** — z-scores and min-max both struggle here; percentile rank is often safer.
+
+### Step 3: Check correlation between variables before weighting
+
+If two of your scoring variables are highly correlated, adding them with independent weights effectively double-counts that shared signal. Either:
+- drop/merge redundant variables,
+- or explicitly account for it (e.g., PCA to get orthogonal components, then weight those).
+
+### Step 4: Decide what "weight" should mean
+
+Two different intentions people conflate:
+- **Weight = relative importance** → normalize variance to be equal across variables first (z-score), then apply your importance weights. This ensures a weight of 2 really means "twice as important," not "twice as important, further inflated by having a bigger spread."
+- **Weight = literal contribution in original units** → don't normalize variance away; weight the raw (or minimally rescaled) values. Rare, but valid if units are genuinely comparable (e.g., all sub-scores are already 0–10 severity ratings).
+
+For the vast majority of "composite score" use cases (KPIs, risk scores, ratings), you want the first: **normalize to equal-variance/equal-range, then apply meaningful weights that sum to 1 (or a fixed total) for easy interpretation.**
+
+### Practical recipe
+
+1. Inspect each variable's distribution (histogram, skew, outliers).
+2. Transform skewed variables (log, etc.) if needed.
+3. Standardize (z-score for symmetric data, min-max for bounded/interpretable data, robust scaling if outliers present).
+4. Check pairwise correlations; address strong redundancy.
+5. Apply your weights (ideally summing to 1) and sum.
+6. Sanity-check the resulting composite: does its distribution look reasonable? Are a few variables secretly dominating (check each variable's contribution to total variance of the sum)?
+
+If you tell me a bit about your variables — their scales, whether any are skewed/bounded, and how many you're combining — I can give more specific guidance on which normalization to use for each.
