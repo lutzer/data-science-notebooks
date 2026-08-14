@@ -212,8 +212,6 @@ Artists residing in an area, concerts played.
 
 ---
 
-
-
 ## Cross-cutting notes
 
 1. **Tier awareness.** Roughly a third of your metrics (income, cost of

@@ -21,6 +21,43 @@ Only the framework notebooks are scaffolded:
 
 Weights live in `weights.yaml`. Shared helpers live in `common.py` (`RAW_DIR`, `PROCESSED_DIR`, `load_grid`, `load_weights`, `normalize_weights`, `load_layers`, `normalize`, `save_variable`, `plot_map`, `download`, `download_nasa_power_dataset`, `compute_temperature_pleasantness`, `weighted_score`) — notebooks import from it.
 
+## Datasets
+
+At-a-glance list of sources currently wired up. See `DATASETS.md` for methodology, confidence tiers, and links.
+
+### Environment
+| # | Variable | Source |
+|---|---|---|
+| 11 | `sea_proximity` | Natural Earth 10m coastlines / OSM coastline extracts |
+| 12 | `terrain_ruggedness` | Copernicus GLO-30 DEM (fallback: SRTM) |
+| 13 | `sun_hours` | NASA POWER API |
+| 14 | `temperature_pleasantness` | ERA5 reanalysis (Copernicus CDS) — apparent temperature |
+| 15 | `annual_greenness` | MODIS MOD13Q1/A1 NDVI composites |
+| 16 | `precipitation_balance` | ERA5 / CHIRPS monthly precipitation |
+| 17 | `air_quality` | Van Donkelaar et al. global PM2.5 surfaces (WUSTL ACAG) |
+| 18 | `natural_disaster_risk` | GFDRR ThinkHazard! JSON API + World Bank official boundaries |
+| 19 | `climate_vulnerability` | ND-GAIN Country Index (`vulnerability.csv`) |
+
+### Population & Infrastructure
+| # | Variable | Source |
+|---|---|---|
+| 21 | `population_density` | GHSL / WorldPop |
+| 22 | `urbanity` | Natural Earth 10m populated places + GaWC World Cities 2024 |
+| 23 | `internet_connectivity` | Ookla Speedtest Open Data |
+| 24 | `healthcare_access` | Weiss et al. 2020 motorized travel-time raster (Malaria Atlas Project) |
+
+### Social & Economy
+| # | Variable | Source |
+|---|---|---|
+| 31 | `income` | Kummu et al. gridded GDP/HDI dataset |
+| 32 | `cost_of_living` | Numbeo (city-level, scraped) — with Meta RWI + World Bank ICP as candidates |
+| 33 | `crime_rate` | World Bank `VC.IHR.PSRC.P5` (UNODC homicides) + Numbeo Crime Index city overlay |
+| 34 | `human_freedom` | V-Dem `v2x_libdem` (via `vdemdata` RData) + ACLED "violence against civilians" overlay |
+| 35 | `corruption` | V-Dem `v2x_corr` (reuses the same `vdemdata` cache as 34) |
+
+### Shared boundaries
+- Natural Earth 50m admin_0 polygons (via `regionmask`) — used to rasterize every country-level layer (19, 33, 34, 35, and the ThinkHazard side of 18).
+
 ## Data
 
 Raw and processed data live in `data/world-livable-atlas/{raw,processed}/` at the repo root (git-ignored). Notebooks reference this path as `../../data/world-livable-atlas/`.
