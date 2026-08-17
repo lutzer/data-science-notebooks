@@ -244,14 +244,14 @@ def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60
     return comfort.mean("month")
 
 
-def compute_population_density_score(source, ideal_density, tolerance_decades=1.0):
+def compute_population_density_score(source, ideal_density, tolerance_decades=1.0, mode='centered'):
     """Score cells by how close their density is to a preferred value.
 
     Reads ``processed/population_density.nc`` (produced by
     ``21_population_density.ipynb``) — raw density in people/km² — and returns
-    a ``[0, 1]`` comfort score. The score is 1 where cell density equals
-    ``ideal_density`` and drops linearly *in log10 space* to 0 at
-    ``10 ** ±tolerance_decades × ideal_density``.
+    a ``[0, 1]`` comfort score. In the default ``mode='centered'`` the score
+    is 1 where cell density equals ``ideal_density`` and drops linearly *in
+    log10 space* to 0 at ``10 ** ±tolerance_decades × ideal_density``.
 
     Working in log space is essential because density spans ~5 orders of
     magnitude between wilderness (~0.01/km²) and megacity cores (~10⁴/km²),
@@ -274,6 +274,13 @@ def compute_population_density_score(source, ideal_density, tolerance_decades=1.
     tolerance_decades : float, optional
         Half-width of the comfort band in log10 units. Densities that differ
         from ``ideal_density`` by more than this many decades score 0.
+    mode : {'centered', 'at_most', 'at_least'}, optional
+        How to treat deviations from ``ideal_density``. ``'centered'`` (default)
+        penalises both sides symmetrically. ``'at_most'`` treats
+        ``ideal_density`` as an upper bound: cells at or below it score 1, and
+        the penalty only kicks in above it — the right choice for wilderness,
+        where "even emptier than ideal" is not worse than ideal. ``'at_least'``
+        is the mirror image for a lower bound.
 
     Returns
     -------
@@ -288,7 +295,15 @@ def compute_population_density_score(source, ideal_density, tolerance_decades=1.
     # emptiness is indistinguishable from a preference standpoint.
     FLOOR = 1e-3
     density = xr.open_dataarray(source)
-    log_delta = np.abs(np.log10(density.clip(min=FLOOR)) - np.log10(max(ideal_density, FLOOR)))
+    log_diff = np.log10(density.clip(min=FLOOR)) - np.log10(max(ideal_density, FLOOR))
+    if mode == 'centered':
+        log_delta = np.abs(log_diff)
+    elif mode == 'at_most':
+        log_delta = log_diff.clip(min=0)
+    elif mode == 'at_least':
+        log_delta = (-log_diff).clip(min=0)
+    else:
+        raise ValueError(f"mode must be 'centered', 'at_most', or 'at_least'; got {mode!r}")
     return (1 - log_delta / tolerance_decades).clip(0, 1)
 
 
