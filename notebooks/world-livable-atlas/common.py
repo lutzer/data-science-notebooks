@@ -171,7 +171,51 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
     return ax
 
 
-def compute_temperature_pleasantness(source : str, ideal_temp=20.0, tolerance=10.0):
+def load_raw_scoring_inputs(path=None):
+    """Load raw temperature, precipitation, and density DataArrays from parquet.
+
+    Companion to the ``raw_scoring_inputs.parquet`` file written by
+    ``94_post_processing.ipynb`` — a compact land-only replacement for the
+    three ``processed/_*_monthly.nc`` / ``_population_density.nc`` files.
+    Returned DataArrays are reindexed onto the full atlas grid (from
+    ``grid.nc``) so they align coordinate-wise with the pre-normalized layers
+    in ``normalized.nc``; dropped ocean cells reappear as NaN.
+
+    Parameters
+    ----------
+    path : pathlib.Path, optional
+        Parquet file to load. Defaults to
+        ``PROCESSED_DIR / 'raw_scoring_inputs.parquet'``.
+
+    Returns
+    -------
+    tuple of xarray.DataArray
+        ``(apparent_temp_monthly, precipitation_monthly, population_density)``
+        — the first two on ``(lat, lon, month)``, the last on ``(lat, lon)``,
+        suitable for passing to the ``compute_*`` helpers below.
+    """
+    import pandas as pd
+
+    if path is None:
+        path = PROCESSED_DIR / "raw_scoring_inputs.parquet"
+    df = pd.read_parquet(path).set_index(["lat", "lon"])
+
+    grid = load_grid()
+
+    def _monthly(prefix):
+        cols = [c for c in df.columns if c.startswith(f"{prefix}_")]
+        wide = df[cols].copy()
+        wide.columns = pd.Index([int(c.rsplit("_", 1)[1]) for c in cols], name="month")
+        da = wide.stack().to_xarray().rename(prefix)
+        return da.reindex(lat=grid.lat, lon=grid.lon)
+
+    temp = _monthly("apparent_temp")
+    precip = _monthly("precipitation")
+    density = df["population_density"].to_xarray().reindex(lat=grid.lat, lon=grid.lon)
+    return temp, precip, density
+
+
+def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
     """Collapse cached monthly apparent temperature into a pleasantness score.
 
     Reads ``processed/_apparent_temp_monthly.nc`` (produced by
@@ -191,8 +235,9 @@ def compute_temperature_pleasantness(source : str, ideal_temp=20.0, tolerance=10
         Half-width of the comfort band in °C. A month whose apparent
         temperature deviates by more than ``tolerance`` from ``ideal_temp``
         contributes 0 to the score.
-    source : pathlib.Path, optional
-        Override for the cached intermediate file (mainly for tests).
+    source : pathlib.Path or xarray.DataArray
+        Path to the cached monthly-temperature NetCDF, or the DataArray
+        itself (e.g. reconstructed from ``load_raw_scoring_inputs``).
 
     Returns
     -------
@@ -201,8 +246,7 @@ def compute_temperature_pleasantness(source : str, ideal_temp=20.0, tolerance=10
     """
     import numpy as np
 
-    path = source
-    at_monthly = xr.open_dataarray(path)
+    at_monthly = source if isinstance(source, xr.DataArray) else xr.open_dataarray(source)
     comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
     return comfort.mean("month")
 
@@ -223,9 +267,10 @@ def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60
 
     Parameters
     ----------
-    source : pathlib.Path
-        Path to the cached monthly-precipitation NetCDF, mm per month on the
-        atlas grid.
+    source : pathlib.Path or xarray.DataArray
+        Path to the cached monthly-precipitation NetCDF (mm per month on the
+        atlas grid), or the DataArray itself (e.g. reconstructed from
+        ``load_raw_scoring_inputs``).
     ideal_monthly_mm : float
         Preferred monthly precipitation total in mm.
     tolerance_mm : float
@@ -239,7 +284,7 @@ def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60
     """
     import numpy as np
 
-    precip_monthly = xr.open_dataarray(source)
+    precip_monthly = source if isinstance(source, xr.DataArray) else xr.open_dataarray(source)
     comfort = (1 - np.abs(precip_monthly - ideal_monthly_mm) / tolerance_mm).clip(0, 1)
     return comfort.mean("month")
 
@@ -267,8 +312,10 @@ def compute_population_density_score(source, density_range, tolerance_decades=1.
 
     Parameters
     ----------
-    source : pathlib.Path
-        Path to the raw density NetCDF (people/km² on the atlas grid).
+    source : pathlib.Path or xarray.DataArray
+        Path to the raw density NetCDF (people/km² on the atlas grid), or
+        the DataArray itself (e.g. reconstructed from
+        ``load_raw_scoring_inputs``).
     density_range : tuple of (float or None, float or None)
         Preferred ``(min, max)`` density in people/km². Cells inside the
         range score 1. Use ``None`` for either bound to leave that side
@@ -292,7 +339,7 @@ def compute_population_density_score(source, density_range, tolerance_decades=1.
     # emptiness is indistinguishable from a preference standpoint.
     FLOOR = 1e-3
     d_min, d_max = density_range
-    density = xr.open_dataarray(source)
+    density = source if isinstance(source, xr.DataArray) else xr.open_dataarray(source)
     log_d = np.log10(density.clip(min=FLOOR))
     log_min = np.log10(max(d_min, FLOOR)) if d_min is not None else -np.inf
     log_max = np.log10(d_max) if d_max is not None else np.inf
