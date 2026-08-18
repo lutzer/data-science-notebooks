@@ -1,13 +1,22 @@
-name: data-science-notebooks
+name: data_science
 channels:
-  - conda-forge
+  - defaults
 dependencies:
-  - python=3.12.10
   - jupyter
-  - jupyterlab
   - numpy
-  - pandas
+  - jupyterlab
+  - python=3.12.10
   - matplotlib
-  - papermill
-  - pyarrow
+  - pandas
   - pyreadr
+  - xarray
+  - netCDF4
+  - regionmask
+  - tqdm
+  - httpx
+  - ipywidgets
+  - scipy
+  - dbfread
+  - pyarrow
+  - dash
+prefix: /opt/homebrew/Caskroom/miniconda/base/envs/data_science
