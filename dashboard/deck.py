@@ -78,82 +78,91 @@ def reproject_df_row(row):
 
 df[["x","y"]] = df.apply(reproject_df_row, axis=1)
 
-points = df[["x", "y","sea_proximity"]].rename(columns={"sea_proximity": "value"}).to_dict("records")
+value_columns = [c for c in df.columns if c not in {"x", "y", "lon", "lat","country_code","continent"}]
+default_column = "sea_proximity"
 
-# 3. Build the deck.gl layer spec.
-data_layers = [
-    {
-        "@@type": "GeoJsonLayer",
-        "id": "choropleth-layer",
-        "data": geojson_projected,
-        "filled": True,
-        "stroked": True,
-        "getFillColor": [0, 0, 0, 10],
-        "getLineColor": [0, 0, 0, 255],
-        "lineWidthMinPixels": 0.5
-    },
-    {
-        "@@type": "ScatterplotLayer",
-        "id": "scatter-layer",
-        "data": points,          # list of dicts, or a DataFrame-derived list
-        "getPosition": "@@=[x, y]",  # note the string expression syntax
-        "getRadius": 15,
-        "getFillColor": "@@=[value * 255, 0, 255 - value * 255, 255]",
-        "getLineColor": [0, 0, 0],
-        "filled": True,
-        "stroked": False,
-        "pickable": False,
-        "opacity": 0.5,
-        "radiusScale": 1,
-        "radiusMinPixels": 0.5,
-        "radiusMaxPixels": 60,
-        "lineWidthMinPixels": 1,
-    }
-],
+def build_deck(column, view):
+    points = df[["x", "y", column]].rename(columns={column: "value"}).dropna().to_dict("records")
+
+    # 3. Build the deck.gl layer spec.
+    data_layers = [
+        {
+            "@@type": "GeoJsonLayer",
+            "id": "choropleth-layer",
+            "data": geojson_projected,
+            "filled": True,
+            "stroked": True,
+            "getFillColor": [0, 0, 0, 10],
+            "getLineColor": [0, 0, 0, 255],
+            "lineWidthMinPixels": 0.5
+        },
+        {
+            "@@type": "ScatterplotLayer",
+            "id": "scatter-layer",
+            "data": points,          # list of dicts, or a DataFrame-derived list
+            "getPosition": "@@=[x, y]",  # note the string expression syntax
+            "getRadius": 40,
+            "getFillColor": "@@=[value * 255, 0, 255 - value * 255, 255]",
+            "getLineColor": [0, 0, 0],
+            "filled": True,
+            "stroked": False,
+            "pickable": False,
+            "opacity": 0.3,
+            "radiusScale": 1,
+            "radiusMinPixels": 0.5,
+            "radiusMaxPixels": 60,
+            "lineWidthMinPixels": 1,
+        }
+    ]
+
+    deck = pdk.Deck(
+        layers=data_layers,
+        initial_view_state=pdk.ViewState(
+            target=[1000, -1000, 0],
+            zoom=-5,
+            rotationX=90
+        ),
+        views=[view],
+        map_provider=None,  # no basemap for a pure Cartesian scene
+    )
+    
+    return deck.to_json()
 
 
-view = pdk.View(
+
+orthographic_view = pdk.View(
     type="OrthographicView",
     controller=True,   # pan + zoom only, no rotation possible
 )
 
-deck = pdk.Deck(
-    layers=data_layers,
-    initial_view_state=pdk.ViewState(
-        target=[1000, -1000, 0],
-        zoom=-5,
-        rotationX=90
-    ),
-    views=[view],
-    map_provider=None,  # no basemap for a pure Cartesian scene
-)
-
 deck_component = dash_deck.DeckGL(
-    deck.to_json(),
+    build_deck(default_column, orthographic_view),
     id="deck-gl",
-    style={"width": "90%", "left": "5%", "height": "500px", "top": "100px", "border": "1px solid black"},
+    style={"width": "90%", "left": "5%", "height": "500px", "top": "200px", "border": "1px solid black"},
 )
 
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    html.H1(children='World Livable Atlas', style={'textAlign': 'center'}), dcc.Checklist(
-        id="column-toggle",
-        options=[{"label": "Show green space instead of sea proximity", "value": "green_space"}],
-        value=[],  # empty = unchecked, default to sea_proximity
-        style={"textAlign": "center", "margin": "10px"}
+    html.H1(children='World Livable Atlas', style={'textAlign': 'center'}),
+    html.Div(
+        dcc.Dropdown(
+            id="column-dropdown",
+            options=[{"label": c, "value": c} for c in value_columns],
+            value=default_column,
+            clearable=False,
+            style={"width": "300px", "margin": "10px auto"}
+        )
     ),
     html.Div(deck_component),
-   
 ])
 
 @app.callback(
     Output("deck-gl", "data"),
-    Input("column-toggle", "value")
+    Input("column-dropdown", "value")
 )
 def update_column(selected):
-    column = "green_space" if "green_space" in selected else "sea_proximity"
-    # return build_deck(column)
+    return build_deck(selected, orthographic_view)
 
 if __name__ == "__main__":
     app.run(debug=True)
