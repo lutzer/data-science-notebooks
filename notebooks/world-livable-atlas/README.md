@@ -79,7 +79,7 @@ conda activate data_science
 jupyter lab
 ```
 
-Then open notebooks in numeric order.
+Then open notebooks in numeric order or run all notebooks by executing `00_main.ipynb` 
 
 ## TODO
 
