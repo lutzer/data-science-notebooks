@@ -2,11 +2,14 @@ import requests
 import numpy as np
 import dash
 import dash_deck
-from dash import html, dcc, Input, Output
+from dash import html, dcc, Input, Output, ALL
 import copy
 from pyproj import Transformer
 import pydeck as pdk
 import pandas as pd
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # 1. Load world geojson with population data (Natural Earth 110m countries)
 GEOJSON_URL = (
@@ -67,7 +70,8 @@ def reproject_geojson(geojson):
 geojson_projected = reproject_geojson(geojson)
 
 # load data
-df = pd.read_parquet("../data/world-livable-atlas/processed/normalized_by_country.parquet")
+data_file_path = BASE_DIR / ".." / ".." / "data" / "world-livable-atlas" / "processed" / "normalized_by_country.parquet"
+df = pd.read_parquet(data_file_path)
 
 def reproject_df_row(row):
     x, y = transform_coordinates(row["lon"], row["lat"])
@@ -129,6 +133,16 @@ def build_deck(column, view):
     return deck.to_json()
 
 
+def build_sliders(columns):
+
+    def create_slider(column):
+        return html.Div([
+            html.Label(column),
+            dcc.Slider(0, 2, 0.1, value=1, id={"type": "column-slider", "index": column}),
+        ])
+
+    return html.Div(children=[create_slider(c) for c in columns], style={"margin-top": "800px"})
+
 
 orthographic_view = pdk.View(
     type="OrthographicView",
@@ -145,6 +159,7 @@ app = dash.Dash(__name__)
 
 app.layout = html.Div([
     html.H1(children='World Livable Atlas', style={'textAlign': 'center'}),
+    html.P(id="output", children="text"),
     html.Div(
         dcc.Dropdown(
             id="column-dropdown",
@@ -154,6 +169,7 @@ app.layout = html.Div([
             style={"width": "300px", "margin": "10px auto"}
         )
     ),
+    build_sliders(value_columns),
     html.Div(deck_component),
 ])
 
@@ -163,6 +179,15 @@ app.layout = html.Div([
 )
 def update_column(selected):
     return build_deck(selected, orthographic_view)
+
+@app.callback(
+    Output("output", "children"),
+    Input({"type": "column-slider", "index": ALL}, "value"),
+)
+def on_any_slider_change(values):
+    # `values` is a list of all slider values, in the order they appear in the layout
+    # dash.callback_context tells you which one triggered it
+    return f"all values: {values}"
 
 if __name__ == "__main__":
     app.run(debug=True)
