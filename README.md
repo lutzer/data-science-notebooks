@@ -2,6 +2,8 @@
 
 A minimal starter for Jupyter notebook projects using **conda** for dependency management, pinned to **Python 3.12.10**.
 
+Holds the anaylsis Project [World Livable atlas](notebooks/world-livable-atlas/README.md) and the [WLA Dashboard](dashboards/wla-react-dashboard/README.md)
+
 ## Prerequisites
 
 Install one of the following (either works):

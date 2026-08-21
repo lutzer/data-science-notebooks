@@ -68,7 +68,7 @@ Raw and processed data live in `data/world-livable-atlas/{raw,processed}/` at th
 2. Fill in the fetch, clean, and interpolate-to-grid cells.
 3. The notebook saves to `data/world-livable-atlas/processed/<variable>.nc` — one 2D DataArray on `(lat, lon)`.
 4. Add `<variable>` to `weights.yaml`.
-5. Re-run `90_scoring.ipynb` and `99_atlas_map.ipynb`.
+5. Re-run all `9x_*` scripts and `99_atlas_map.ipynb` to visualize the data.
 
 ## Running
 
@@ -80,8 +80,3 @@ jupyter lab
 ```
 
 Then open notebooks in numeric order or run all notebooks by executing `00_main.ipynb` 
-
-## TODO
-
-* adjust falloff of sea proximity
-* visualization plotly or folium? or choropleth
