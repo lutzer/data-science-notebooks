@@ -16,7 +16,7 @@ Only the framework notebooks are scaffolded:
 
 - `01_grid.ipynb` — build the 0.5° land grid, save as NetCDF
 - `10_variable_template.ipynb` — copy-me template for each data source
-- `90_scoring.ipynb` — normalize + weighted sum
+- `9x_*.ipynb` — normalize + weighted sum
 - `99_atlas_map.ipynb` — choropleth + interactive re-weighting
 
 Weights live in `weights.yaml`. Shared helpers live in `common.py` (`RAW_DIR`, `PROCESSED_DIR`, `load_grid`, `load_weights`, `normalize_weights`, `load_layers`, `normalize`, `save_variable`, `plot_map`, `download`, `download_nasa_power_dataset`, `compute_temperature_pleasantness`, `weighted_score`) — notebooks import from it.
