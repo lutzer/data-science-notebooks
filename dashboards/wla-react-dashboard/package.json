@@ -13,9 +13,11 @@
     "@deck.gl/core": "^9.3.10",
     "@deck.gl/layers": "^9.3.10",
     "@deck.gl/react": "^9.3.10",
+    "@radix-ui/themes": "^3.3.0",
     "d3-geo": "^3.1.1",
     "deck.gl": "^9.3.10",
     "hyparquet": "^1.29.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

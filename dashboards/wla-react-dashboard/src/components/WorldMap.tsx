@@ -32,7 +32,7 @@ async function loadCountries(): Promise<FeatureCollection> {
  * Renders the reprojected country outlines as a deck.gl choropleth inside an
  * OrthographicView. Point-value overlays are intentionally not rendered yet.
  */
-export function WorldMap() {
+export function WorldMap({height} : { height: string }) {
   const [geojson, setGeojson] = useState<FeatureCollection | undefined>(undefined);
 
   const layers = [
@@ -61,7 +61,7 @@ export function WorldMap() {
       views={new OrthographicView({ id: 'ortho', controller: true })}
       initialViewState={INITIAL_VIEW_STATE}
       layers={layers}
-      style={{ width: '100%', height: '500px', border: "1px solid black" }}
+      style={{ width: '100%', height: height, border: "1px solid black" }}
     />
   );
 }
