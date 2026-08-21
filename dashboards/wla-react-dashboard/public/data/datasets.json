@@ -1,0 +1,214 @@
+{
+  "datasets": [
+    {
+      "id": "sea_proximity",
+      "number": 11,
+      "name": "Sea Proximity",
+      "category": "Environment",
+      "tier": "A",
+      "description": "How close an area is to the coast. Higher scores mean shorter distances to the sea.",
+      "sources": [
+        { "name": "Natural Earth 10m coastlines", "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/" },
+        { "name": "OpenStreetMap coastline extracts", "url": "https://osmdata.openstreetmap.de/data/coastlines.html" }
+      ]
+    },
+    {
+      "id": "terrain_ruggedness",
+      "number": 12,
+      "name": "Terrain Ruggedness",
+      "category": "Environment",
+      "tier": "A",
+      "description": "How mountainous the landscape is — captures slope and elevation variability rather than distance to a mountain range.",
+      "sources": [
+        { "name": "Copernicus GLO-30 DEM", "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model" },
+        { "name": "NASA SRTM", "url": "https://www2.jpl.nasa.gov/srtm/" }
+      ]
+    },
+    {
+      "id": "sun_hours",
+      "number": 13,
+      "name": "Sun Hours",
+      "category": "Environment",
+      "tier": "A",
+      "description": "How much sunshine an area receives over the year. Higher scores mean more sunny hours.",
+      "sources": [
+        { "name": "NASA POWER", "url": "https://power.larc.nasa.gov/" }
+      ]
+    },
+    {
+      "id": "temperature_pleasantness",
+      "number": 14,
+      "name": "Temperature Pleasantness",
+      "category": "Environment",
+      "tier": "B",
+      "description": "How comfortable the year-round temperature feels, accounting for humidity. Higher scores mean more time spent in a mild, non-extreme range.",
+      "sources": [
+        { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" }
+      ]
+    },
+    {
+      "id": "annual_greenness",
+      "number": 15,
+      "name": "Annual Greenness",
+      "category": "Environment",
+      "tier": "A",
+      "description": "How green and vegetated an area is across the year. Higher scores mean lusher landscapes.",
+      "sources": [
+        { "name": "MODIS MOD13Q1/A1 (NASA)", "url": "https://modis.gsfc.nasa.gov/data/dataprod/mod13.php" },
+        { "name": "Copernicus Global Land Service", "url": "https://land.copernicus.eu/global/" },
+        { "name": "Sentinel-2 via Google Earth Engine", "url": "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2" }
+      ]
+    },
+    {
+      "id": "precipitation_balance",
+      "number": 16,
+      "name": "Precipitation Balance",
+      "category": "Environment",
+      "tier": "B",
+      "description": "How balanced the rainfall is — moderate totals without long droughts or heavy downpours. Higher scores mean a more even distribution of rain across the year.",
+      "sources": [
+        { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" },
+        { "name": "CHIRPS", "url": "https://www.chc.ucsb.edu/data/chirps" }
+      ]
+    },
+    {
+      "id": "air_quality",
+      "number": 17,
+      "name": "Air Quality",
+      "category": "Environment",
+      "tier": "A",
+      "description": "How clean the outdoor air is, based on fine-particle pollution (PM2.5). Higher scores mean cleaner air.",
+      "sources": [
+        { "name": "Van Donkelaar et al. global PM2.5 surfaces", "url": "https://sites.wustl.edu/acag/datasets/surface-pm2-5/" },
+        { "name": "Copernicus CAMS", "url": "https://atmosphere.copernicus.eu/" }
+      ]
+    },
+    {
+      "id": "natural_disaster_risk",
+      "number": 18,
+      "name": "Natural Disaster Risk",
+      "category": "Environment",
+      "tier": "C",
+      "description": "Overall exposure to natural hazards such as floods, earthquakes, cyclones, landslides, and wildfires. Higher scores mean safer areas.",
+      "sources": [
+        { "name": "GFDRR ThinkHazard!", "url": "https://thinkhazard.org" }
+      ]
+    },
+    {
+      "id": "climate_vulnerability",
+      "number": 19,
+      "name": "Climate Vulnerability",
+      "category": "Environment",
+      "tier": "C",
+      "description": "How exposed a country is to the long-term impacts of climate change on food, water, health, ecosystems, and infrastructure. Higher scores mean lower vulnerability.",
+      "sources": [
+        { "name": "ND-GAIN Country Index", "url": "https://gain.nd.edu/our-work/country-index/" }
+      ]
+    },
+    {
+      "id": "population_density",
+      "number": 21,
+      "name": "Population Density",
+      "category": "Population & Infrastructure",
+      "tier": "A",
+      "description": "How many people live per square kilometre. Higher scores mean more crowded areas.",
+      "sources": [
+        { "name": "GHSL (JRC)", "url": "https://ghsl.jrc.ec.europa.eu/" },
+        { "name": "WorldPop", "url": "https://www.worldpop.org/" }
+      ]
+    },
+    {
+      "id": "urbanity",
+      "number": 22,
+      "name": "Urbanity",
+      "category": "Population & Infrastructure",
+      "tier": "B",
+      "description": "How much major-city life is within reach — bigger and more globally significant cities nearby raise the score more than distant or minor ones.",
+      "sources": [
+        { "name": "Natural Earth populated places", "url": "https://naturalearthdata.com/downloads/10m-cultural-vectors/10m-populated-places/" },
+        { "name": "GaWC World Cities 2024", "url": "https://gawc.lboro.ac.uk/gawc-worlds/the-world-according-to-gawc/world-cities-2024/" }
+      ]
+    },
+    {
+      "id": "internet_connectivity",
+      "number": 23,
+      "name": "Internet Connectivity",
+      "category": "Population & Infrastructure",
+      "tier": "A",
+      "description": "How fast and reliable local internet access is. Higher scores mean better connectivity.",
+      "sources": [
+        { "name": "Ookla Speedtest Open Data", "url": "https://github.com/teamookla/ookla-open-data" }
+      ]
+    },
+    {
+      "id": "healthcare_access",
+      "number": 24,
+      "name": "Healthcare Access",
+      "category": "Population & Infrastructure",
+      "tier": "A",
+      "description": "How quickly the nearest hospital or clinic can be reached by car. Higher scores mean shorter travel times.",
+      "sources": [
+        { "name": "Malaria Atlas Project — Accessibility to Healthcare", "url": "https://malariaatlas.org/project-resources/accessibility-to-healthcare/" }
+      ]
+    },
+    {
+      "id": "income",
+      "number": 31,
+      "name": "Income",
+      "category": "Social & Economy",
+      "tier": "C",
+      "description": "Average income level of residents. Higher scores mean wealthier populations.",
+      "sources": [
+        { "name": "Kummu et al. gridded GDP/HDI", "url": "https://www.nature.com/articles/sdata20184" }
+      ]
+    },
+    {
+      "id": "cost_of_living",
+      "number": 32,
+      "name": "Cost of Living",
+      "category": "Social & Economy",
+      "tier": "C",
+      "description": "How expensive daily essentials — rent, groceries, transport — are. Higher scores mean more affordable.",
+      "sources": [
+        { "name": "Numbeo Cost of Living", "url": "https://www.numbeo.com/cost-of-living/" },
+        { "name": "Meta Relative Wealth Index", "url": "https://data.humdata.org/dataset/relative-wealth-index" },
+        { "name": "World Bank ICP Price Level Index", "url": "https://www.worldbank.org/en/programs/icp" }
+      ]
+    },
+    {
+      "id": "crime_rate",
+      "number": 33,
+      "name": "Crime Rate",
+      "category": "Social & Economy",
+      "tier": "C",
+      "description": "How safe an area is from violent crime. Higher scores mean lower crime.",
+      "sources": [
+        { "name": "World Bank / UNODC homicide rate", "url": "https://data.worldbank.org/indicator/VC.IHR.PSRC.P5" },
+        { "name": "Numbeo Crime Index", "url": "https://www.numbeo.com/crime/rankings_current.jsp" }
+      ]
+    },
+    {
+      "id": "human_freedom",
+      "number": 34,
+      "name": "Human Freedom",
+      "category": "Social & Economy",
+      "tier": "C",
+      "description": "How free the society is — democratic institutions, civil liberties, and freedom from political violence. Higher scores mean greater freedom.",
+      "sources": [
+        { "name": "V-Dem Liberal Democracy Index", "url": "https://v-dem.net/" },
+        { "name": "ACLED", "url": "https://acleddata.com" }
+      ]
+    },
+    {
+      "id": "corruption",
+      "number": 35,
+      "name": "Corruption",
+      "category": "Social & Economy",
+      "tier": "C",
+      "description": "How much corruption shapes public life across government, courts, and public services. Higher scores mean less corruption.",
+      "sources": [
+        { "name": "V-Dem Political Corruption Index", "url": "https://v-dem.net/" }
+      ]
+    }
+  ]
+}

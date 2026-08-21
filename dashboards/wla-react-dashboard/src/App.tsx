@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { WorldMap } from './components/WorldMap';
-import { loadWlaData, type WlaRow } from './lib/loadParquet';
-import "@radix-ui/themes/styles.css";
-import { Theme, Grid, Box } from "@radix-ui/themes";
+import { type DatasetDiscriptor, loadDatasetDescriptors, loadWlaData, type WlaRow } from './lib/data_loader';
+import { Theme, Grid, Heading, Text } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
+import "@radix-ui/themes/styles.css";
 
 function App() {
   const [rows, setRows] = useState<WlaRow[]>([]);
+  const [descriptors, setDescriptors] = useState<DatasetDiscriptor[]>([]) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([loadWlaData()])
-      .then(([r]) => {
+    Promise.all([loadWlaData(), loadDatasetDescriptors()])
+      .then(([r,d]) => {
         setRows(r);
-        console.log(r)
+        setDescriptors(d);
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
@@ -27,17 +28,18 @@ function App() {
 
   return (
     <Theme>
-        <h1>
-          World Livable Atlas
-        </h1>
+        <Heading size="9" align="center" m="8">
+          World Liveable Atlas
+        </Heading>
         <div className="dashboard">
-          <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '500px' }}>
-            <WorldMap height='500px'/>
+          <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '550px' }}>
+            <WorldMap height='550px'/>
           </div>
-          <p>{status}</p>
-          <Grid columns="3" gap="3" rows="repeat(2, 64px)" width="auto">
-              <ParameterBox/>
-          </Grid>
+          <Text>{status}</Text>
+          <Heading size="5" my="5">Personal Weights</Heading>
+          <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
+            { descriptors.map((d) => <ParameterBox key={d.id} name={d.name} description={d.description}/>)}
+            </Grid>
         </div> 
     </Theme>
     // <div
