@@ -38,7 +38,7 @@ function App() {
           <Text>{status}</Text>
           <Heading size="5" my="5">Personal Weights</Heading>
           <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
-            { descriptors.map((d) => <ParameterBox key={d.id} name={d.name} description={d.description}/>)}
+            { descriptors.map((d) => <ParameterBox parameter={d}/>)}
             </Grid>
         </div> 
     </Theme>

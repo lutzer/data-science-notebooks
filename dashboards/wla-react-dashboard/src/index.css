@@ -3,6 +3,12 @@
   color-scheme: light dark;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* colors */
+  --environment-color: #84994F;
+  --social-color: #FFE797;
+  --infrastructure-color: #FCB53B;
+  --other-color: #A72703;
 }
 
 #root {
