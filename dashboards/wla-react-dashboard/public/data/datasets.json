@@ -44,7 +44,14 @@
       "description": "How comfortable the year-round temperature feels, accounting for humidity. Higher scores mean more time spent in a mild, non-extreme range.",
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" }
-      ]
+      ],
+      "variants": {
+        "p1" : "Icy (5°C ±8)",
+        "p2" : "Cool (15°C ±8)",
+        "p3" : "Temperate (20°C ±10)",
+        "p4" : "Warm (25°C ±8)",
+        "p5" : "Tropical (27°C ±5)"
+      }
     },
     {
       "id": "annual_greenness",
@@ -69,7 +76,13 @@
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" },
         { "name": "CHIRPS", "url": "https://www.chc.ucsb.edu/data/chirps" }
-      ]
+      ],
+      "variants": {
+        "p1": "Arid (20mm ±20)",
+        "p2": "Balanced (80mm ±60)",
+        "p3": "Wet (150mm ±60)",
+        "p4": "Very wet (250mm ±80)"
+      }
     },
     {
       "id": "air_quality",
@@ -115,7 +128,13 @@
       "sources": [
         { "name": "GHSL (JRC)", "url": "https://ghsl.jrc.ec.europa.eu/" },
         { "name": "WorldPop", "url": "https://www.worldpop.org/" }
-      ]
+      ],
+      "variants": {
+        "p1": "Wilderness (≤1/km² ±1dec)",
+        "p2": "Rural (10–300/km² ±1dec)",
+        "p3": "Suburban (200–1500/km² ±1dec)",
+        "p4": "Urban (≥1500/km² ±1dec)"
+      }
     },
     {
       "id": "urbanity",

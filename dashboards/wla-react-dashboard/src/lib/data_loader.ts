@@ -18,6 +18,7 @@ export interface DatasetDiscriptor {
   name: string,
   category: string,
   description: string
+  variants : { key: string } | undefined
 }
 
 /**
