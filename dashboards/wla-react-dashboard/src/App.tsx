@@ -1,24 +1,47 @@
 import { useEffect, useState } from 'react';
-import { WorldMap } from './components/WorldMap';
-import { type WlaDataMatrix, type DatasetDiscriptor, loadDatasetDescriptors, loadWlaMatrix } from './lib/data_loader';
+import { WorldMap, type DataPoint } from './components/WorldMap';
+import { type WlaDataMatrix, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
 import { Theme, Grid, Heading, Text } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import "@radix-ui/themes/styles.css";
+import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
 
 function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
-  const [descriptors, setDescriptors] = useState<DatasetDiscriptor[]>([]) 
   const [error, setError] = useState<string | null>(null);
+  const [parameters, setParameters] = useState<WlaParameter[]>([])
+  const [mapData, setMapData] = useState<DataPoint[]>([])
 
   useEffect(() => {
     Promise.all([loadWlaMatrix(), loadDatasetDescriptors()])
-      .then(([m,d]) => {
-        setData(m)
-        console.log(m)
-        setDescriptors(d);
+      .then(([matrix,descriptors]) => {
+        setData(matrix)
+        setParameters(descriptors.map((d) => { return {
+          descriptor: d,
+          weight: d.defaultWeight,
+          checked: false,
+          variant: undefined
+        }}));
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
+
+  useEffect(() => {
+    if (data !== null && parameters.length > 0) {
+      var weights = constructWeightVectorFromParamaters(parameters, data.columns);
+      var scores = computeWeightedScore(data, weights);
+      
+      const n = scores.length;
+      const result = new Array(n); // pre-allocate, avoid dynamic growth
+
+      for (let i = 0; i < n; i++) {
+        result[i] = { x: data.computed_x[i], y: data.computed_y[i], value: scores[i] };
+      }
+
+      setMapData(result);
+
+    }
+  },[parameters, data])
 
   const status =
     error != null
@@ -27,6 +50,24 @@ function App() {
         ? `loaded ${data.numRows} rows`
         : 'loading parquet…';
 
+  function handleWeightChange(id: string, w: number) {
+    setParameters(parameters.map((p) => {
+      return p.descriptor.id === id ? {...p, weight : w} : p
+    }))
+  }
+
+  function handleCheckedChange(id: string, c: boolean) {
+    setParameters(parameters.map((p) => {
+      return p.descriptor.id === id ? {...p, checked : c} : p
+    }))
+  }
+
+  function handleVariantChange(id: string, v: string) {
+    setParameters(parameters.map((p) => {
+      return p.descriptor.id === id ? {...p, variant : v} : p
+    }))
+  }
+
   return (
     <Theme>
         <Heading size="9" align="center" m="8">
@@ -34,12 +75,17 @@ function App() {
         </Heading>
         <div className="dashboard">
           <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '550px' }}>
-            <WorldMap height='550px'/>
+            <WorldMap data={mapData} height='550px'/>
           </div>
           <Text>{status}</Text>
           <Heading size="5" my="5">Personal Weights</Heading>
           <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
-            { descriptors.map((d) => <ParameterBox key={d.id} parameter={d}/>)}
+            { parameters.map((p) => 
+              <ParameterBox key={p.descriptor.id} 
+                parameter={p} 
+                onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)} 
+                onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)} 
+                onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}/>)}
             </Grid>
         </div> 
     </Theme>

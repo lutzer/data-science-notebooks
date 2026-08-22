@@ -1,15 +1,18 @@
 import type { FeatureCollection } from 'geojson';
-import { parquetReadObjects } from 'hyparquet';
 import wasmInit, {readParquet} from "parquet-wasm";
 import { tableFromIPC } from 'apache-arrow';
+import { transformCoordinates } from './projection';
 
 export interface WlaDataMatrix {
-  x: Float32Array;
-  y: Float32Array;
+  lat: Float32Array;
+  lon: Float32Array;
+  country: string[];
   data: Float32Array; // row-major: element (i, j) at data[i * numCols + j]
   numRows: number;
   numCols: number;
   columns: string[]; // column order, for reference
+  computed_x: Float32Array;
+  computed_y: Float32Array;
 }
 
 export interface DatasetDiscriptor {
@@ -17,8 +20,17 @@ export interface DatasetDiscriptor {
   number: number,
   name: string,
   category: string,
+  defaultWeight: number,
   description: string
+  defaultVariant? : string
   variants : { key: string } | undefined
+}
+
+export interface WlaParameter {
+  descriptor: DatasetDiscriptor,
+  weight: number,
+  checked: boolean,
+  variant: string | undefined
 }
 
 /**
@@ -36,11 +48,12 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
   const wasmTable = readParquet(new Uint8Array(buffer));
   const arrowTable = tableFromIPC(wasmTable.intoIPCStream());
 
-  // discover columns from the schema, in file order
+  // discover columns from the schema, in file order, filter out columns that start with _
   const allColumns = arrowTable.schema.fields.map((f) => f.name);
+  const dataColumns = allColumns.filter((c) => !c.startsWith("_"))
 
-  // keep only numeric columns — non-numeric ones can't go into a Float32Array matrix
-  const columns = allColumns.filter((name) => {
+  // keep only numeric data columns — non-numeric ones can't go into a Float32Array matrix
+  const columns = dataColumns.filter((name) => {
     const type = arrowTable.getChild(name)?.type;
     return type && (
       type.toString().includes('Int') ||
@@ -60,7 +73,22 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
     }
   }
 
-  return { data, numRows, numCols, columns };
+  const lat = arrowTable.getChild('_lat')?.toArray()
+  const lon = arrowTable.getChild('_lon')?.toArray()
+
+  // calculate projection
+  let computed_x = new Float32Array(numRows)
+  let computed_y = new Float32Array(numRows)
+
+  for(let i=0; i < numRows; i++) {
+    let [x,y] = transformCoordinates(lon[i],lat[i]);
+    computed_x[i] = x;
+    computed_y[i] = y;
+  }
+
+  const country = arrowTable.getChild('_country_code')?.toArray();
+
+  return { lat, lon, country, data, numRows, numCols, columns, computed_x, computed_y };
 }
 
 export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {
