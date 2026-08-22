@@ -15,9 +15,11 @@
     "@deck.gl/react": "^9.3.10",
     "@radix-ui/themes": "^3.3.0",
     "@turf/bbox": "^7.4.0",
+    "apache-arrow": "^21.2.0",
     "d3-geo": "^3.1.1",
     "deck.gl": "^9.3.10",
     "hyparquet": "^1.29.0",
+    "parquet-wasm": "^0.7.2",
     "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

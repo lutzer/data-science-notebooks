@@ -1,15 +1,15 @@
 import type { FeatureCollection } from 'geojson';
 import { parquetReadObjects } from 'hyparquet';
+import wasmInit, {readParquet} from "parquet-wasm";
+import { tableFromIPC } from 'apache-arrow';
 
-export interface WlaData {
-  columnNames: string[]
-  rows: number[][]
-}
-
-export interface WlaRow {
-  lat: number;
-  lon: number;
-  [metric: string]: number | string | null;
+export interface WlaDataMatrix {
+  x: Float32Array;
+  y: Float32Array;
+  data: Float32Array; // row-major: element (i, j) at data[i * numCols + j]
+  numRows: number;
+  numCols: number;
+  columns: string[]; // column order, for reference
 }
 
 export interface DatasetDiscriptor {
@@ -21,18 +21,45 @@ export interface DatasetDiscriptor {
 }
 
 /**
- * Fetch `normalized_wc.parquet` from the dev server and decode it into an
- * array of row objects. Rows with a null `lat` or `lon` are dropped, since
- * they cannot be mapped.
+ * Fetch `normalized_wc.parquet` from the dev server and decode it into a
+ * DataMatrixobject.
  */
-export async function loadWlaData(): Promise<WlaRow[]> {
-  const res = await fetch('/data/normalized_wc.parquet');
+export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
+  await wasmInit();
+  const res = await fetch('/data/dashboard_data.parquet');
   if (!res.ok) {
     throw new Error(`failed to fetch parquet: ${res.status} ${res.statusText}`);
   }
-  const file = await res.arrayBuffer();
-  const rows = (await parquetReadObjects({ file })) as WlaRow[];
-  return rows.filter((r) => r.lat != null && r.lon != null);
+  const buffer = await res.arrayBuffer();
+
+  const wasmTable = readParquet(new Uint8Array(buffer));
+  const arrowTable = tableFromIPC(wasmTable.intoIPCStream());
+
+  // discover columns from the schema, in file order
+  const allColumns = arrowTable.schema.fields.map((f) => f.name);
+
+  // keep only numeric columns — non-numeric ones can't go into a Float32Array matrix
+  const columns = allColumns.filter((name) => {
+    const type = arrowTable.getChild(name)?.type;
+    return type && (
+      type.toString().includes('Int') ||
+      type.toString().includes('Float')
+    );
+  });
+
+  const numRows = arrowTable.numRows;
+  const numCols = columns.length;
+  const data = new Float32Array(numRows * numCols);
+
+  for (let j = 0; j < numCols; j++) {
+    const col = arrowTable.getChild(columns[j])!;
+    const colData = col.toArray();
+    for (let i = 0; i < numRows; i++) {
+      data[i * numCols + j] = colData[i];
+    }
+  }
+
+  return { data, numRows, numCols, columns };
 }
 
 export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {

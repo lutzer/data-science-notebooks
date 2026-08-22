@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { WorldMap } from './components/WorldMap';
-import { type DatasetDiscriptor, loadDatasetDescriptors, loadWlaData, type WlaRow } from './lib/data_loader';
+import { type WlaDataMatrix, type DatasetDiscriptor, loadDatasetDescriptors, loadWlaMatrix } from './lib/data_loader';
 import { Theme, Grid, Heading, Text } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import "@radix-ui/themes/styles.css";
 
 function App() {
-  const [rows, setRows] = useState<WlaRow[]>([]);
+  const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [descriptors, setDescriptors] = useState<DatasetDiscriptor[]>([]) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([loadWlaData(), loadDatasetDescriptors()])
-      .then(([r,d]) => {
-        setRows(r);
+    Promise.all([loadWlaMatrix(), loadDatasetDescriptors()])
+      .then(([m,d]) => {
+        setData(m)
+        console.log(m)
         setDescriptors(d);
       })
       .catch((e: unknown) => setError(String(e)));
@@ -22,8 +23,8 @@ function App() {
   const status =
     error != null
       ? `error: ${error}`
-      : rows != null
-        ? `loaded ${rows.length} rows`
+      : data != null
+        ? `loaded ${data.numRows} rows`
         : 'loading parquet…';
 
   return (
@@ -38,7 +39,7 @@ function App() {
           <Text>{status}</Text>
           <Heading size="5" my="5">Personal Weights</Heading>
           <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
-            { descriptors.map((d) => <ParameterBox parameter={d}/>)}
+            { descriptors.map((d) => <ParameterBox key={d.id} parameter={d}/>)}
             </Grid>
         </div> 
     </Theme>
