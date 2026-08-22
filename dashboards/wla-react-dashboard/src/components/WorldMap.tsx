@@ -1,32 +1,20 @@
 import { DeckGL } from '@deck.gl/react';
-import { OrthographicView } from '@deck.gl/core';
+import { OrthographicView, type OrthographicViewState } from '@deck.gl/core';
 import { GeoJsonLayer } from '@deck.gl/layers';
-import type { FeatureCollection } from 'geojson';
+import type { BBox, FeatureCollection } from 'geojson';
 import { reprojectGeojson } from '../lib/projection';
 import { useEffect, useState } from 'react';
+import bbox from '@turf/bbox';
+import { loadCountries } from '../lib/data_loader';
 
-const INITIAL_VIEW_STATE = {
-  target: [40, -20, 0] as [number, number, number],
-  zoom: 0.3,
-};
+  const INITIAL_VIEW_STATE : OrthographicViewState = {
+    target: [40, -20, 0] as [number, number, number],
+    zoom: 0,
+    minZoom: 0,
+    maxZoom: 4
+  };
 
-const COUNTRIES_URL = 'public/ne_110m_admin_0_countries.geojson';
-
-/**
- * Fetch the Natural Earth 110m country polygons, drop Antarctica (matching
- * the Python prototype) and reproject the whole FeatureCollection.
- */
-async function loadCountries(): Promise<FeatureCollection> {
-  const res = await fetch(COUNTRIES_URL);
-  if (!res.ok) {
-    throw new Error(`failed to fetch countries geojson: ${res.status}`);
-  }
-  const raw: FeatureCollection = await res.json();
-  raw.features = raw.features.filter(
-    (f) => f.properties?.ADMIN !== 'Antarctica',
-  );
-  return reprojectGeojson(raw);
-}
+  const BBOX_OFFSET = 10.0;
 
 /**
  * Renders the reprojected country outlines as a deck.gl choropleth inside an
@@ -34,6 +22,7 @@ async function loadCountries(): Promise<FeatureCollection> {
  */
 export function WorldMap({height} : { height: string }) {
   const [geojson, setGeojson] = useState<FeatureCollection | undefined>(undefined);
+  const [boundingBox, setBoundingBox] = useState<BBox | undefined>(undefined)
 
   const layers = [
     new GeoJsonLayer({
@@ -48,17 +37,23 @@ export function WorldMap({height} : { height: string }) {
     }),
   ];
 
+ 
+
   useEffect(() => {
       Promise.all([loadCountries()])
-        .then(([g, r]) => {
-          setGeojson(g);
+        .then(([g]) => {
+          let projection = reprojectGeojson(g)
+          setBoundingBox(bbox(projection, { recompute: true}));
+          setGeojson(projection);
         })
         // .catch((e: unknown) => setError(String(e)));
     }, []);
 
   return (
     <DeckGL
-      views={new OrthographicView({ id: 'ortho', controller: true })}
+      views={new OrthographicView({ id: 'ortho', controller: {
+        maxBounds: boundingBox && [[boundingBox[0] - BBOX_OFFSET,boundingBox[1]- BBOX_OFFSET] ,[boundingBox[2] + BBOX_OFFSET,boundingBox[3] + BBOX_OFFSET]]} 
+      })}
       initialViewState={INITIAL_VIEW_STATE}
       layers={layers}
       style={{ width: '100%', height: height, border: "1px solid black" }}
