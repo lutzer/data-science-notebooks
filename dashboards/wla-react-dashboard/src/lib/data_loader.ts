@@ -59,6 +59,8 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
     );
   });
 
+ 
+
   const numRows = arrowTable.numRows;
   const numCols = columns.length;
   const data = new Float32Array(numRows * numCols);
