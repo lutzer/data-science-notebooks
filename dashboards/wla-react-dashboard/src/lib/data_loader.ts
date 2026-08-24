@@ -1,7 +1,7 @@
 import type { FeatureCollection } from 'geojson';
 import wasmInit, {readParquet} from "parquet-wasm";
 import { tableFromIPC } from 'apache-arrow';
-import { transformCoordinates } from './projection';
+import { transformCoordinates } from './geometry';
 
 export interface WlaDataMatrix {
   lat: Float32Array;
@@ -11,8 +11,6 @@ export interface WlaDataMatrix {
   numRows: number;
   numCols: number;
   columns: string[]; // column order, for reference
-  computed_x: Float32Array;
-  computed_y: Float32Array;
 }
 
 export interface DatasetDiscriptor {
@@ -76,19 +74,9 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
   const lat = arrowTable.getChild('_lat')?.toArray()
   const lon = arrowTable.getChild('_lon')?.toArray()
 
-  // calculate projection
-  let computed_x = new Float32Array(numRows)
-  let computed_y = new Float32Array(numRows)
-
-  for(let i=0; i < numRows; i++) {
-    let [x,y] = transformCoordinates(lon[i],lat[i]);
-    computed_x[i] = x;
-    computed_y[i] = y;
-  }
-
   const country = arrowTable.getChild('_country_code')?.toArray();
 
-  return { lat, lon, country, data, numRows, numCols, columns, computed_x, computed_y };
+  return { lat, lon, country, data, numRows, numCols, columns };
 }
 
 export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {
@@ -111,5 +99,17 @@ export async function loadCountries(): Promise<FeatureCollection> {
   raw.features = raw.features.filter(
     (f) => f.properties?.ADMIN !== 'Antarctica',
   );
+  return raw;
+}
+
+/**
+ * Fetches the Polygons for all grid cells.
+ */
+export async function loadCells(): Promise<FeatureCollection> {
+  const res = await fetch("/data/dashboard_cells.geojson");
+  if (!res.ok) {
+    throw new Error(`failed to fetch cells geojson: ${res.status}`);
+  }
+  const raw: FeatureCollection = await res.json();
   return raw;
 }

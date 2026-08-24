@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { WorldMap, type DataPoint } from './components/WorldMap';
+import { type DataCell, WorldMap, } from './components/WorldMap';
 import { type WlaDataMatrix, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
 import { Theme, Grid, Heading, Text } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
@@ -10,7 +10,8 @@ function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [parameters, setParameters] = useState<WlaParameter[]>([])
-  const [mapData, setMapData] = useState<DataPoint[]>([])
+  const [mapData, setMapData] = useState<number[]>([])
+  // const [cells, setCells] = useState<Position[][]>([])
 
   useEffect(() => {
     Promise.all([loadWlaMatrix(), loadDatasetDescriptors()])
@@ -19,12 +20,17 @@ function App() {
         setParameters(descriptors.map((d) => { return {
           descriptor: d,
           weight: d.defaultWeight,
-          checked: false,
+          checked: true,
           variant: undefined
         }}));
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
+
+  useEffect(() => {
+    // compute polygons
+
+  }, [data])
 
   useEffect(() => {
     if (data !== null && parameters.length > 0) {
@@ -35,7 +41,7 @@ function App() {
       const result = new Array(n); // pre-allocate, avoid dynamic growth
 
       for (let i = 0; i < n; i++) {
-        result[i] = { x: data.computed_x[i], y: data.computed_y[i], value: scores[i] };
+        result[i] = scores[i];
       }
 
       setMapData(result);

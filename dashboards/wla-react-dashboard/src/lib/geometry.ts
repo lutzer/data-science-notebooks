@@ -1,4 +1,5 @@
-import { geoNaturalEarth1 } from 'd3-geo';
+import type { Int } from 'apache-arrow';
+import { geoEqualEarth } from 'd3-geo';
 import type {
   Feature,
   FeatureCollection,
@@ -6,16 +7,16 @@ import type {
   Position,
 } from 'geojson';
 
-const projection = geoNaturalEarth1().scale(150).translate([0, 0]);
+const projection = geoEqualEarth().scale(150).translate([0, 0]);
 
 /**
  * Project a single (lon, lat) pair to Cartesian Natural Earth coordinates.
  * Y is flipped so that north points up in deck.gl's screen space, matching
  * the Python prototype's `[x, -y]` convention.
  */
-export function transformCoordinates(lon: number, lat: number): Position {
+export function transformCoordinates(lon: number, lat: number): Position | null {
   const projected = projection([lon, lat]);
-  if (projected == null) return [0, 0];
+  if (projected == null) return null;
   return projected;
 }
 

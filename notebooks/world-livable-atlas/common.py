@@ -171,6 +171,38 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
     return ax
 
 
+# Shared preference profiles for the three tunable comfort layers. Consumed by
+# both the interactive map (99_atlas_map) and the dashboard export (98) so the
+# two stay in sync — if you add a profile here, both surfaces pick it up.
+#
+# Temperature/precipitation entries are ``(ideal, tolerance)`` for the
+# triangular comfort helpers. Density entries are ``((min, max), tolerance_decades)``
+# where ``None`` on either side of the range means unbounded on that side —
+# wilderness is a pure upper bound (empty cells still score 1), urban a pure
+# lower bound.
+TEMP_PROFILES = {
+    'Icy (5°C ±8)':           (0.0, 8.0),
+    'Cool (15°C ±8)':         (15.0, 8.0),
+    'Temperate (20°C ±10)':   (20.0, 10.0),
+    'Warm (25°C ±8)':         (25.0, 8.0),
+    'Tropical (27°C ±5)':     (27.0, 5.0),
+}
+
+PRECIP_PROFILES = {
+    'Arid (20mm ±20)':       (20.0, 20.0),
+    'Balanced (80mm ±60)':   (80.0, 60.0),
+    'Wet (150mm ±60)':       (150.0, 60.0),
+    'Very wet (250mm ±80)':  (250.0, 80.0),
+}
+
+DENSITY_PROFILES = {
+    'Wilderness (≤1/km² ±1dec)':     ((None, 1),    1.0),
+    'Rural (10–300/km² ±1dec)':      ((10, 300),    1.0),
+    'Suburban (200–1500/km² ±1dec)': ((200, 1500),  1.0),
+    'Urban (≥1500/km² ±1dec)':       ((1500, None), 1.0),
+}
+
+
 def load_raw_scoring_inputs(path=None):
     """Load raw temperature, precipitation, and density DataArrays from parquet.
 
