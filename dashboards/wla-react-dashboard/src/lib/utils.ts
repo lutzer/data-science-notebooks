@@ -10,20 +10,19 @@ import type { WlaDataMatrix, WlaParameter } from "./data_loader";
  * `descriptor.defaultVariant` when the user hasn't picked one yet — so
  * unrelated variant columns for the same parameter contribute 0.
  */
-export function constructWeightVectorFromParamaters(parameters : WlaParameter[], dataColumns: string[]) : number[] {
-    return dataColumns.map((col) => {
-        for (const p of parameters) {
-            if (!p.checked) continue;
-            const id = p.descriptor.id;
-            if (p.descriptor.variants) {
-                const variant = p.variant ?? p.descriptor.defaultVariant;
-                if (variant && col === `${id}_${variant}`) return p.weight;
-            } else if (col === id) {
-                return p.weight;
-            }
+export function constructWeightVectorFromParamaters(parameters: WlaParameter[], dataColumns: string[]): number[] {
+    const weightMap = new Map<string, number>();
+    for (const p of parameters) {
+        if (!p.checked) continue;
+        const id = p.descriptor.id;
+        if (p.descriptor.variants) {
+            const variant = p.variant ?? p.descriptor.defaultVariant;
+            if (variant) weightMap.set(`${id}_${variant}`, p.weight);
+        } else {
+            weightMap.set(id, p.weight);
         }
-        return 0;
-    });
+    }
+    return dataColumns.map((col) => weightMap.get(col) ?? 0);
 }
 
 /**
@@ -43,16 +42,28 @@ export function constructWeightVectorFromParamaters(parameters : WlaParameter[],
  */
 export function computeWeightedScore(matrix: WlaDataMatrix, weights: number[]): Float32Array {
     const { data, numRows, numCols } = matrix;
+
+    // Precompute once: only columns with non-zero weight matter, and
+    // this set is the same for every row.
+    const activeIdx: number[] = [];
+    const activeW: number[] = [];
+    for (let j = 0; j < numCols; j++) {
+        if (weights[j] !== 0) {
+            activeIdx.push(j);
+            activeW.push(weights[j]);
+        }
+    }
+    const m = activeIdx.length;
+
     const out = new Float32Array(numRows);
     for (let i = 0; i < numRows; i++) {
         const base = i * numCols;
         let num = 0;
         let den = 0;
-        for (let j = 0; j < numCols; j++) {
-            const w = weights[j];
-            if (w === 0) continue;
-            const v = data[base + j];
+        for (let k = 0; k < m; k++) {
+            const v = data[base + activeIdx[k]];
             if (!Number.isNaN(v)) {
+                const w = activeW[k];
                 num += w * v;
                 den += w;
             }

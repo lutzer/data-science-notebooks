@@ -113,3 +113,20 @@ export async function loadCells(): Promise<FeatureCollection> {
   const raw: FeatureCollection = await res.json();
   return raw;
 }
+
+/**
+ * Build an ISO-A3 → display-name lookup from the Natural Earth countries
+ * geojson. Used to resolve the `_country_code` column (also ISO-A3) to a
+ * human-readable label.
+ */
+export async function loadCountryNames(): Promise<Record<string, string>> {
+  const fc = await loadCountries();
+  const map: Record<string, string> = {};
+  for (const f of fc.features) {
+    const props = f.properties ?? {};
+    const code = props.ADM0_A3 as string | undefined;
+    const name = (props.ADMIN as string | undefined) ?? (props.NAME as string | undefined);
+    if (code && name) map[code] = name;
+  }
+  return map;
+}

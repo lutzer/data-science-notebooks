@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { type DataCell, WorldMap, } from './components/WorldMap';
-import { type WlaDataMatrix, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
-import { Theme, Grid, Heading, Text } from "@radix-ui/themes";
+import { type MapData, WorldMap, } from './components/WorldMap';
+import { type WlaDataMatrix, loadCountryNames, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
+import { Theme, Grid, Heading, Text, Flex, Button } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
+import { CellInfoCard } from './components/CellInfoCard';
 import "@radix-ui/themes/styles.css";
 import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
 
@@ -10,12 +11,14 @@ function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [parameters, setParameters] = useState<WlaParameter[]>([])
-  const [mapData, setMapData] = useState<number[]>([])
+  const [mapData, setMapData] = useState<MapData>({ values: [], bounds: [0,0]})
+  const [countryNames, setCountryNames] = useState<Record<string, string>>({});
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   // const [cells, setCells] = useState<Position[][]>([])
 
   useEffect(() => {
-    Promise.all([loadWlaMatrix(), loadDatasetDescriptors()])
-      .then(([matrix,descriptors]) => {
+    Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames()])
+      .then(([matrix, descriptors, names]) => {
         setData(matrix)
         setParameters(descriptors.map((d) => { return {
           descriptor: d,
@@ -23,6 +26,7 @@ function App() {
           checked: true,
           variant: undefined
         }}));
+        setCountryNames(names);
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
@@ -34,19 +38,20 @@ function App() {
 
   useEffect(() => {
     if (data !== null && parameters.length > 0) {
-      var weights = constructWeightVectorFromParamaters(parameters, data.columns);
-      var scores = computeWeightedScore(data, weights);
-      
-      const n = scores.length;
-      const result = new Array(n); // pre-allocate, avoid dynamic growth
+    const weights = constructWeightVectorFromParamaters(parameters, data.columns);
+    const scores = computeWeightedScore(data, weights); // Float32Array
 
-      for (let i = 0; i < n; i++) {
-        result[i] = scores[i];
-      }
-
-      setMapData(result);
-
+    const n = scores.length;
+    let min = scores[0];
+    let max = scores[0];
+    for (let i = 1; i < n; i++) {
+      const v = scores[i];
+      if (v < min) min = v;
+      else if (v > max) max = v;
     }
+
+    setMapData({ values: scores, bounds: [min, max] });
+  }
   },[parameters, data])
 
   const status =
@@ -74,17 +79,39 @@ function App() {
     }))
   }
 
+  function handleClearWeights(): void {
+    setParameters(parameters.map((p) => {
+      return {...p, checked : false}
+    }))
+  }
+
   return (
-    <Theme>
-        <Heading size="9" align="center" m="8">
+    <Theme scaling="90%">
+        <Heading size="9" align="center" m="5">
           World Liveable Atlas
         </Heading>
         <div className="dashboard">
           <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '550px' }}>
-            <WorldMap data={mapData} height='550px'/>
+            <WorldMap
+              data={mapData}
+              height='550px'
+              selectedIndex={selectedIndex}
+              onCellClick={(cell) => setSelectedIndex(cell ? cell.index : null)}
+            />
+            {data && selectedIndex != null && (
+              <CellInfoCard
+                data={data}
+                parameters={parameters}
+                index={selectedIndex}
+                countryNames={countryNames}
+                onClose={() => setSelectedIndex(null)}
+              />
+            )}
           </div>
-          <Text>{status}</Text>
-          <Heading size="5" my="5">Personal Weights</Heading>
+          <Flex justify="between" mb="2">
+            <Heading>Parameters</Heading>
+            <Button onClick={handleClearWeights}>Clear Weigthts</Button>
+          </Flex>
           <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
             { parameters.map((p) => 
               <ParameterBox key={p.descriptor.id} 
