@@ -26,6 +26,7 @@ data/*
 !data/world-livable-atlas/raw/air_quality/V5GL04.HybridPM25.Global.nc
 !data/world-livable-atlas/raw/natural_disaster_risk/gdmhz.zip
 !data/world-livable-atlas/raw/natural_disaster_risk/gdmhzmrt.zip
+!data/world-livable-atlas/processed/dashboard_data.parquet
 
 course_material
 
