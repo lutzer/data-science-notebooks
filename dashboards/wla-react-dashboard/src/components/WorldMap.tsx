@@ -83,7 +83,7 @@ export function WorldMap({data, height, onCellClick, selectedIndex} : {
       data: geojson,
       filled: false,
       stroked: true,
-      getLineColor: [255, 255, 255, 100],
+      getLineColor: [0, 0, 0, 100],
       lineWidthMinPixels: 0.5,
       getLineWidth: 0.1
     }),
