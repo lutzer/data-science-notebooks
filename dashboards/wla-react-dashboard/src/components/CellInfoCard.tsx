@@ -112,7 +112,7 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                                 score={c.value}
                                 distribution={c.contribution}
                                 scoreColor="var(--accent-9)"
-                                distributionColor="var(--gray-9)"
+                                distributionColor="var(--gray-3)"
                             />
                         </Flex>
                     ))}

@@ -23,6 +23,122 @@ def load_grid():
     return xr.open_dataset(PROCESSED_DIR / "grid.nc")
 
 
+def load_country_lookup():
+    """Return a ``DataFrame`` of ISO3, NAME, CONTINENT for every country in the cached mask.
+
+    Produced alongside the ``country_mask.nc`` grid by ``03_region_mask.ipynb``,
+    from the Natural Earth 1:50m admin_0 shapefile. Useful for notebooks that
+    need to translate a country name (e.g. from a scraped source) to its ISO3,
+    or attach a continent to per-cell ISO3s, without re-downloading Natural
+    Earth themselves.
+    """
+    import pandas as pd
+
+    ds = xr.open_dataset(PROCESSED_DIR / "country_mask.nc")
+    return pd.DataFrame({
+        "ISO3": ds["iso3"].values,
+        "NAME": ds["name"].values,
+        "CONTINENT": ds["continent"].values,
+    })
+
+
+def load_country_mask():
+    """Open the shared admin_0 country mask built by ``03_region_mask.ipynb``.
+
+    Returns a 2D ``(lat, lon)`` DataArray of ISO3 country codes as Python
+    strings, with the empty string ``''`` for cells that fall outside every
+    country (ocean, Antarctica). Consumers can then join score tables on ISO3
+    without having to re-download Natural Earth polygons or re-run
+    ``dominant_region_mask`` themselves — the mask is expensive to build but
+    constant across variable notebooks that all rasterise onto the same grid.
+
+    The empty-string sentinel is used instead of ``None`` because xarray
+    silently converts ``None`` to ``NaN`` when wrapping an object dtype array,
+    which then propagates as a float that breaks string comparisons. Empty
+    strings survive the wrap and cleanly return ``NaN`` from ``pandas.Series.map``
+    (the standard join pattern in consumer notebooks).
+    """
+    import numpy as np
+
+    ds = xr.open_dataset(PROCESSED_DIR / "country_mask.nc")
+    idx = ds["country_idx"].values
+    iso3 = ds["iso3"].values
+    valid = idx >= 0
+    result = np.full(idx.shape, "", dtype=object)
+    result[valid] = iso3[idx[valid]]
+    return xr.DataArray(
+        result,
+        coords={"lat": ds.lat, "lon": ds.lon},
+        dims=("lat", "lon"),
+        name="iso3",
+    )
+
+
+def dominant_region_mask(regions, lon, lat, chunk_size=300):
+    """Assign each cell to the region with the largest fractional coverage.
+
+    Drop-in replacement for ``regions.mask(lon, lat)`` that behaves correctly
+    on the fractional-coverage grid built in ``02_grid``: island cells and
+    partial-land coastal cells whose *centre* falls in the ocean are still
+    assigned to whichever country / region actually occupies most of the
+    cell, rather than being dropped.
+
+    Processes ``regions`` in chunks so peak memory stays bounded — a single
+    ``mask_3D_frac_approx`` call on ~3000 ADM1 polygons at 0.5° globally
+    allocates several GB and blows the kernel. Within each chunk we keep only
+    the running ``(best_frac, best_number)`` pair, so total memory is
+    proportional to ``chunk_size × lat × lon`` rather than the full region set.
+
+    Parameters
+    ----------
+    regions : regionmask.Regions
+        Region set to rasterise.
+    lon, lat : array-like or xarray.DataArray
+        Cell centre coordinates, as accepted by regionmask.
+    chunk_size : int, optional
+        Regions per ``mask_3D_frac_approx`` call. The default of 300 keeps peak
+        allocation well below 1 GB on a global 0.5° grid.
+
+    Returns
+    -------
+    xarray.DataArray
+        2D ``(lat, lon)`` array of region numbers (float, with NaN for cells
+        outside every region) — matching the return shape of ``.mask()``.
+    """
+    import numpy as np
+
+    numbers = np.asarray(list(regions.numbers))
+    best_frac = None
+    best_num = None
+    for start in range(0, len(numbers), chunk_size):
+        chunk_nums = numbers[start:start + chunk_size]
+        frac = regions[list(chunk_nums)].mask_3D_frac_approx(lon, lat)
+        if frac.sizes["region"] == 0:
+            # ``mask_3D_frac_approx`` silently drops regions with zero coverage
+            # on the entire grid; a whole chunk of microstates can vanish. Skip.
+            continue
+        # Read the actual region numbers back from the mask output — positions
+        # in ``frac`` do NOT line up with positions in ``chunk_nums`` when some
+        # regions get dropped (Vatican, Monaco, etc. on a 0.5° grid).
+        present_numbers = frac["region"].values
+        chunk_max = frac.max("region")
+        chunk_argmax = frac.argmax("region")
+        chunk_best = xr.DataArray(
+            present_numbers[chunk_argmax.values],
+            coords=chunk_argmax.coords,
+            dims=chunk_argmax.dims,
+        ).astype("float64")
+        if best_frac is None:
+            best_frac = chunk_max
+            best_num = chunk_best
+        else:
+            update = chunk_max > best_frac
+            best_frac = xr.where(update, chunk_max, best_frac)
+            best_num = xr.where(update, chunk_best, best_num)
+
+    return best_num.where(best_frac > 0)
+
+
 def load_weights(path=WEIGHTS_FILE):
     """Parse ``weights.yaml``, dropping zero-weighted entries.
 

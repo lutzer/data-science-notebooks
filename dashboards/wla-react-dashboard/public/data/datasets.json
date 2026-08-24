@@ -78,7 +78,7 @@
       "name": "Precipitation Balance",
       "category": "Environment",
       "tier": "B",
-      "defaultWeight": 1.0,
+      "defaultWeight": 0.2,
       "description": "How balanced the rainfall is — moderate totals without long droughts or heavy downpours. Higher scores mean a more even distribution of rain across the year.",
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" },
