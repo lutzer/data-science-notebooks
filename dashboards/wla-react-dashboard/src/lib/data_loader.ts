@@ -130,3 +130,19 @@ export async function loadCountryNames(): Promise<Record<string, string>> {
   }
   return map;
 }
+
+/**
+ * Build an ISO-A3 → continent lookup from the Natural Earth countries geojson,
+ * matching the `_country_code` column to the Natural Earth `CONTINENT` field.
+ */
+export async function loadCountryContinents(): Promise<Record<string, string>> {
+  const fc = await loadCountries();
+  const map: Record<string, string> = {};
+  for (const f of fc.features) {
+    const props = f.properties ?? {};
+    const code = props.ADM0_A3 as string | undefined;
+    const continent = props.CONTINENT as string | undefined;
+    if (code && continent) map[code] = continent;
+  }
+  return map;
+}

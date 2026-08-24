@@ -53,16 +53,6 @@ export function WorldMap({data, height, onCellClick, selectedIndex} : {
 
   const layers = [
     new GeoJsonLayer({
-      id: 'choropleth-layer',
-      data: geojson,
-      filled: true,
-      stroked: true,
-      getFillColor: [0, 0, 0, 0],
-      getLineColor: [0, 0, 0, 255],
-      lineWidthMinPixels: 0.5,
-      getLineWidth: 0.1
-    }),
-    new GeoJsonLayer({
       id: 'data-layer',
       data: cells,
       filled: true,
@@ -86,6 +76,16 @@ export function WorldMap({data, height, onCellClick, selectedIndex} : {
       updateTriggers: {
         getFillColor: [data, selectedIndex],
       },
+    }),
+
+    new GeoJsonLayer({
+      id: 'choropleth-layer',
+      data: geojson,
+      filled: false,
+      stroked: true,
+      getLineColor: [255, 255, 255, 100],
+      lineWidthMinPixels: 0.5,
+      getLineWidth: 0.1
     }),
   ];
 

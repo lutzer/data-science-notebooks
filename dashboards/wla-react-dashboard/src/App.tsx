@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { type MapData, WorldMap, } from './components/WorldMap';
-import { type WlaDataMatrix, loadCountryNames, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
-import { Theme, Grid, Heading, Text, Flex, Button } from "@radix-ui/themes";
+import { type WlaDataMatrix, loadCountryContinents, loadCountryNames, loadDatasetDescriptors, loadWlaMatrix, type WlaParameter } from './lib/data_loader';
+import { Theme, Grid, Heading, Text, Flex, Button, Box } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
+import { TopCellsTable } from './components/TopCellsTable';
 import "@radix-ui/themes/styles.css";
 import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
 
@@ -11,14 +12,14 @@ function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [parameters, setParameters] = useState<WlaParameter[]>([])
-  const [mapData, setMapData] = useState<MapData>({ values: [], bounds: [0,0]})
+  const [mapData, setMapData] = useState<MapData>({ values: new Float32Array(), bounds: [0,0]})
   const [countryNames, setCountryNames] = useState<Record<string, string>>({});
+  const [countryContinents, setCountryContinents] = useState<Record<string, string>>({});
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  // const [cells, setCells] = useState<Position[][]>([])
 
   useEffect(() => {
-    Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames()])
-      .then(([matrix, descriptors, names]) => {
+    Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames(), loadCountryContinents()])
+      .then(([matrix, descriptors, names, continents]) => {
         setData(matrix)
         setParameters(descriptors.map((d) => { return {
           descriptor: d,
@@ -27,6 +28,7 @@ function App() {
           variant: undefined
         }}));
         setCountryNames(names);
+        setCountryContinents(continents);
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
@@ -113,14 +115,26 @@ function App() {
             <Button onClick={handleClearWeights}>Clear Weigthts</Button>
           </Flex>
           <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
-            { parameters.map((p) => 
-              <ParameterBox key={p.descriptor.id} 
-                parameter={p} 
-                onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)} 
-                onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)} 
+            { parameters.map((p) =>
+              <ParameterBox key={p.descriptor.id}
+                parameter={p}
+                onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)}
+                onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)}
                 onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}/>)}
             </Grid>
-        </div> 
+          {data && mapData.values.length > 0 && (
+            <Box mt="5">
+              <Heading mb="2">Top 20 Grid Cells</Heading>
+              <TopCellsTable
+                data={data}
+                mapData={mapData}
+                countryNames={countryNames}
+                countryContinents={countryContinents}
+                onRowClick={setSelectedIndex}
+              />
+            </Box>
+          )}
+        </div>
     </Theme>
     // <div
     //   style={{
