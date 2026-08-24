@@ -1,4 +1,4 @@
-import { Table } from "@radix-ui/themes";
+import { Link, Table } from "@radix-ui/themes";
 import type { MapData } from "./WorldMap";
 import type { WlaDataMatrix } from "../lib/data_loader";
 
@@ -58,6 +58,7 @@ export function TopCellsTable({
                     <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Country</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Continent</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>Map</Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -66,6 +67,9 @@ export function TopCellsTable({
                     const country = (code && countryNames[code]) || code || "—";
                     const continent = (code && countryContinents[code]) || "—";
                     const score = mapData.values[idx];
+                    const lat = data.lat[idx];
+                    const lon = data.lon[idx];
+                    const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
                     return (
                         <Table.Row
                             key={idx}
@@ -76,6 +80,16 @@ export function TopCellsTable({
                             <Table.Cell>{score.toFixed(3)}</Table.Cell>
                             <Table.RowHeaderCell>{country}</Table.RowHeaderCell>
                             <Table.Cell>{continent}</Table.Cell>
+                            <Table.Cell>
+                                <Link
+                                    href={mapsUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Open
+                                </Link>
+                            </Table.Cell>
                         </Table.Row>
                     );
                 })}
