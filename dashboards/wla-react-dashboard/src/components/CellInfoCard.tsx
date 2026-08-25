@@ -1,5 +1,6 @@
 import { Card, Flex, Heading, IconButton, Text, ScrollArea } from "@radix-ui/themes";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
+import { PieChart, Pie, Tooltip, Cell } from 'recharts';
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared

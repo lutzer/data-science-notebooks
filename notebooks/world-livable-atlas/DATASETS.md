@@ -210,6 +210,14 @@ Artists residing in an area, concerts played.
   2. Scrape [Songkick](https://www.songkick.com/) / [Bandsintown](https://www.bandsintown.com/) APIs for venue/event data — patchy, Western/urban-biased.
   3. **Recommended:** fold into `cultural_attractions` as a sub-tag using OSM's `amenity=music_venue` / `amenity=nightclub` rather than treating it as a standalone metric.
 
+## More Ideas for Datasets
+
+* inflation score
+* fresh water availability
+* openness of society for strangers
+* polital unrest
+* satisfaction / happyness of people
+
 ---
 
 ## Cross-cutting notes
