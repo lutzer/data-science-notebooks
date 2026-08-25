@@ -72,6 +72,9 @@ function ExpandedRow({ data, parameters, score, index }: {
     const components = scoreComponentsFor(data, parameters, index);
     const lat = data.lat[index];
     const lon = data.lon[index];
+    const country = data.country[index];
+    const region = data.regionName[index];
+    const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
 
     return (
         <div
@@ -81,12 +84,26 @@ function ExpandedRow({ data, parameters, score, index }: {
                 padding: '18px 12px',
                 flexWrap: 'wrap',
                 alignItems: 'stretch',
+                color: 'var(--text-on-paper)'
             }}
         >
             <div style={{ flex: '1 1 260px', minWidth: 240 }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                     <ScoreCircle size={100} score={score} />
                 </div>
+                <Flex direction="column" gap="1" mb="3">
+                    <Text>
+                        <strong>Country:</strong> {country}
+                    </Text>
+                    <Text>
+                        <strong>Region:</strong> {region}
+                    </Text>
+                    <Text>
+                        <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
+                            {lat.toFixed(3)}°, {lon.toFixed(3)}°
+                        </a>
+                    </Text>
+                </Flex>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginBottom: 8 }}>
                     Score components
                 </div>
@@ -223,6 +240,7 @@ export function CellsTable({
                         <Table.ColumnHeaderCell style={{ width: 40 }}>#</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Country</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Region</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Coordinates</Table.ColumnHeaderCell>
                     </Table.Row>
                 </Table.Header>
@@ -234,6 +252,9 @@ export function CellsTable({
                         // continent is derived here to keep the earlier lookup wiring intact;
                         // surfaced in the hover tooltip on the country cell.
                         const continent = (code && countryContinents[code]) || "";
+                        const regionName = data.regionName[idx];
+                        const regionCode = data.regionCode[idx];
+                        const region = regionName || regionCode || "—";
                         const score = mapData.values[idx];
                         const lat = data.lat[idx];
                         const lon = data.lon[idx];
@@ -243,7 +264,7 @@ export function CellsTable({
                             <Fragment key={idx}>
                                 <Table.Row
                                     className="wla-row"
-                                    onClick={onRowClick ? () => onRowClick(idx) : undefined}
+                                    onClick={() => toggleExpanded(idx)}
                                     style={onRowClick ? { cursor: 'pointer' } : undefined}
                                 >
                                     <Table.Cell>
@@ -253,10 +274,6 @@ export function CellsTable({
                                             size="1"
                                             color="gray"
                                             aria-label={isExpanded ? "Collapse row" : "Expand row"}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleExpanded(idx);
-                                            }}
                                         >
                                             {isExpanded ? <TriangleDownIcon width={18} height={18} /> : <TriangleRightIcon width={18} height={18} />}
                                         </IconButton>
@@ -269,20 +286,14 @@ export function CellsTable({
                                         </div>
                                     </Table.Cell>
                                     <Table.Cell className="wla-region" title={continent || undefined}>{country}</Table.Cell>
+                                    <Table.Cell className="wla-region" title={regionCode || undefined}>{region}</Table.Cell>
                                     <Table.Cell className="wla-coords">
-                                        <a
-                                            href={mapsUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            {lat.toFixed(3)}°, {lon.toFixed(3)}°
-                                        </a>
+                                        {lat.toFixed(3)}°, {lon.toFixed(3)}°
                                     </Table.Cell>
                                 </Table.Row>
                                 {isExpanded && (
                                     <Table.Row className="wla-expand-row">
-                                        <Table.Cell colSpan={5}>
+                                        <Table.Cell colSpan={6}>
                                             <ExpandedRow data={data} score={score} parameters={parameters} index={idx} />
                                         </Table.Cell>
                                     </Table.Row>

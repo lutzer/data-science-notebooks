@@ -8,7 +8,7 @@ import {
   loadWlaMatrix,
   type WlaParameter,
 } from './lib/data_loader';
-import { Button, Flex, Theme } from "@radix-ui/themes";
+import { Button, Flex, Link, Theme } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
 import { CellsTable } from './components/CellsTable';
@@ -211,7 +211,7 @@ function App() {
         </div>
 
         <footer className="wla-footer">
-          ---
+          Created in 2026 by Lutz Reiter - <Link href="https://github.com/lutzer/data-science-notebooks">View Github</Link>
         </footer>
       </div>
     </Theme>

@@ -59,7 +59,7 @@ export function ScoreCircle({
           style={{ position: "absolute", inset: 0 }}
         >
           <Text size="4" weight="medium" style={{ lineHeight: 1, color: textColor, fontFamily: "'JetBrains Mono', monospace" }}>
-            {value.toFixed(2)}
+            {value.toFixed(3)}
           </Text>
         </Flex>
       </Box>

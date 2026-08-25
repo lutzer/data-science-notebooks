@@ -11,6 +11,8 @@ export interface WlaDataMatrix {
   lat: Float32Array;
   lon: Float32Array;
   country: string[];
+  regionCode: string[];
+  regionName: string[];
   data: Float32Array; // row-major: element (i, j) at data[i * numCols + j]
   numRows: number;
   numCols: number;
@@ -62,8 +64,9 @@ function asyncBufferFromArrayBuffer(buffer: ArrayBuffer): AsyncBuffer {
 /**
  * Fetch `dashboard_data.parquet` from the dev server and decode it into a
  * WlaDataMatrix. Only numeric top-level columns whose names do not start with
- * `_` are placed into the row-major data matrix; `_lat`, `_lon`, and
- * `_country_code` are returned as separate arrays.
+ * `_` are placed into the row-major data matrix; `_lat`, `_lon`,
+ * `_country_code`, `_region_code`, and `_region_name` are returned as
+ * separate arrays.
  */
 export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
   const res = await fetch('/data/dashboard_data.parquet');
@@ -87,11 +90,13 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
   const lat = new Float32Array(numRows);
   const lon = new Float32Array(numRows);
   const country = new Array<string>(numRows);
+  const regionCode = new Array<string>(numRows);
+  const regionName = new Array<string>(numRows);
 
   await parquetRead({
     file,
     metadata,
-    columns: [...columns, '_lat', '_lon', '_country_code'],
+    columns: [...columns, '_lat', '_lon', '_country_code', '_region_code', '_region_name'],
     rowFormat: 'object',
     onComplete: (rows) => {
       for (let i = 0; i < numRows; i++) {
@@ -101,12 +106,14 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
         }
         lat[i] = Number(row._lat);
         lon[i] = Number(row._lon);
-        country[i] = row._country_code as string;
+        country[i] = (row._country_code as string) ?? "";
+        regionCode[i] = (row._region_code as string) ?? "";
+        regionName[i] = (row._region_name as string) ?? "";
       }
     },
   });
 
-  return { lat, lon, country, data, numRows, numCols, columns };
+  return { lat, lon, country, regionCode, regionName, data, numRows, numCols, columns };
 }
 
 export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {

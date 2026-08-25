@@ -42,6 +42,9 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
     const lon = data.lon[index];
     const code = data.country[index];
     const country = (code && countryNames[code]) || code || "—";
+    const regionName = data.regionName[index];
+    const regionCode = data.regionCode[index];
+    const region = regionName || regionCode || "—";
     const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
 
     const colIndex = new Map<string, number>();
@@ -108,10 +111,13 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
 
             <div style={{ padding: '12px 16px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-                    <ScoreCircle size={70} score={score} />
+                    <ScoreCircle size={80} score={score} />
                 </div>
                 <div style={{ fontSize: 12.5 }}>
                     <strong>Country:</strong> {country}
+                </div>
+                <div style={{ fontSize: 12.5 }} title={regionCode || undefined}>
+                    <strong>Region:</strong> {region}
                 </div>
                 <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono', monospace", color: 'var(--text-on-paper-dim)' }}>
                     <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
