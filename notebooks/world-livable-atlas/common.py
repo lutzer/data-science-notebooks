@@ -212,14 +212,19 @@ def save_variable(da, name):
     return out
 
 async def download(url: str, filename: str):
-    """Downloads url to filename, shows progress bar"""
+    """Downloads url to filename, shows progress bar.
+
+    On any failure the partial/empty file is removed so a re-run's
+    ``if not path.exists()`` guard re-triggers the download instead of handing
+    the caller a truncated file.
+    """
     filepath = Path(filename)
 
     # Create the parent directory if it doesn't exist
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(filepath, 'wb') as f:
-        async with httpx.AsyncClient() as client:
+    try:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             async with client.stream('GET', url) as r:
                 r.raise_for_status()
                 total = int(r.headers.get('content-length', 0))
@@ -232,12 +237,15 @@ async def download(url: str, filename: str):
                     'unit_scale': True,
                     'unit_divisor': 1024,
                 }
-                with tqdm(**tqdm_params) as pb:
+                with open(filepath, 'wb') as f, tqdm(**tqdm_params) as pb:
                     downloaded = r.num_bytes_downloaded
                     async for chunk in r.aiter_bytes():
                         pb.update(r.num_bytes_downloaded - downloaded)
                         f.write(chunk)
                         downloaded = r.num_bytes_downloaded
+    except BaseException:
+        filepath.unlink(missing_ok=True)
+        raise
 
 
 def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):

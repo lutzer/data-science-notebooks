@@ -100,7 +100,7 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
       getLineWidth: 0.1,
       getFillColor: (_, { index }) => {
         if (selectedIndex === index)
-          return [224, 182, 88, 255]
+          return [255, 255, 255, 255]
         else
           return index < data.values.length && data.values[index] ? [...calculateColor(data.values[index], data.bounds), 255] : [0,0,0,0]
       },

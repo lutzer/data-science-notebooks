@@ -231,6 +231,11 @@ export function CellsTable({
         setExpanded((prev) => (prev === idx ? null : idx));
     }
 
+    useEffect(() => {
+        if (expanded)
+            onRowClick?.(expanded)
+    },[expanded])
+
     return (
         <div>
             <Table.Root variant="ghost" size="1">
@@ -258,7 +263,6 @@ export function CellsTable({
                         const score = mapData.values[idx];
                         const lat = data.lat[idx];
                         const lon = data.lon[idx];
-                        const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
                         const isExpanded = expanded === idx;
                         return (
                             <Fragment key={idx}>
