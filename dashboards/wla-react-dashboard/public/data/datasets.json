@@ -45,7 +45,7 @@
       "category": "Environment",
       "tier": "B",
       "defaultWeight": 1.5,
-      "description": "How comfortable the year-round temperature feels, accounting for humidity. Higher scores mean more time spent in a mild, non-extreme range.",
+      "description": "How comfortable the year-round temperature feels, accounting for humidity. Higher scores mean it is more in your selected range.",
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" }
       ],
@@ -79,7 +79,7 @@
       "category": "Environment",
       "tier": "B",
       "defaultWeight": 0.2,
-      "description": "How balanced the rainfall is — moderate totals without long droughts or heavy downpours. Higher scores mean a more even distribution of rain across the year.",
+      "description": "How balanced the rainfall is — moderate totals without long droughts or heavy downpours. Higher scores mean it is more in your selected range",
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" },
         { "name": "CHIRPS", "url": "https://www.chc.ucsb.edu/data/chirps" }
@@ -136,7 +136,7 @@
       "category": "Population & Infrastructure",
       "tier": "A",
       "defaultWeight": 0.8,
-      "description": "How many people live per square kilometre. Higher scores mean more crowded areas.",
+      "description": "How many people live per square kilometre. Higher scores mean it fits better your selected preference.",
       "sources": [
         { "name": "GHSL (JRC)", "url": "https://ghsl.jrc.ec.europa.eu/" },
         { "name": "WorldPop", "url": "https://www.worldpop.org/" }

@@ -17,6 +17,11 @@ export interface WlaDataMatrix {
   columns: string[]; // column order, for reference
 }
 
+export interface DatasetSource {
+  name: string,
+  url: string,
+}
+
 export interface DatasetDiscriptor {
   id: string,
   number: number,
@@ -24,6 +29,7 @@ export interface DatasetDiscriptor {
   category: string,
   defaultWeight: number,
   description: string
+  sources?: DatasetSource[]
   defaultVariant? : string
   variants : { key: string } | undefined
 }

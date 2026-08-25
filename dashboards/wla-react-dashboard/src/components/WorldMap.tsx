@@ -15,7 +15,7 @@ const INITIAL_VIEW_STATE : OrthographicViewState = {
   target: [40, -20, 0] as [number, number, number],
   zoom: 0,
   minZoom: 0,
-  maxZoom: 4
+  maxZoom: 5
 };
 
 const BBOX_OFFSET = 10.0;

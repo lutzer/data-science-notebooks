@@ -8,6 +8,19 @@ import { CellsTable } from './components/CellsTable';
 import "@radix-ui/themes/styles.css";
 import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
 
+const STORAGE_KEY = 'wla-parameters';
+
+type SavedParam = { weight: number; checked: boolean; variant: string | undefined };
+
+function loadSavedParams(): Record<string, SavedParam> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) as Record<string, SavedParam> : {};
+  } catch {
+    return {};
+  }
+}
+
 function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -21,12 +34,16 @@ function App() {
     Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames(), loadCountryContinents()])
       .then(([matrix, descriptors, names, continents]) => {
         setData(matrix)
-        setParameters(descriptors.map((d) => { return {
-          descriptor: d,
-          weight: d.defaultWeight,
-          checked: true,
-          variant: undefined
-        }}));
+        const saved = loadSavedParams();
+        setParameters(descriptors.map((d) => {
+          const s = saved[d.id];
+          return {
+            descriptor: d,
+            weight: s?.weight ?? d.defaultWeight,
+            checked: s?.checked ?? true,
+            variant: s?.variant,
+          };
+        }));
         setCountryNames(names);
         setCountryContinents(continents);
       })
@@ -50,6 +67,15 @@ function App() {
     setMapData({ values: scores, bounds: [min, max] });
   }
   },[parameters, data])
+
+  useEffect(() => {
+    if (parameters.length === 0) return;
+    const toSave: Record<string, SavedParam> = {};
+    for (const p of parameters) {
+      toSave[p.descriptor.id] = { weight: p.weight, checked: p.checked, variant: p.variant };
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }, [parameters]);
 
   function handleWeightChange(id: string, w: number) {
     setParameters(parameters.map((p) => {
@@ -77,7 +103,11 @@ function App() {
 
   function handleRandomizeWeights(): void {
     setParameters(parameters.map((p) => {
-      return {...p, weight : Math.random(), checked: true}
+      const variantKeys = p.descriptor.variants ? Object.keys(p.descriptor.variants) : [];
+      const variant = variantKeys.length > 0
+        ? variantKeys[Math.floor(Math.random() * variantKeys.length)]
+        : p.variant;
+      return {...p, weight : Math.random(), checked: true, variant}
     }))
   }
 
@@ -90,8 +120,8 @@ function App() {
           <Box my="7">
             <Text as="div" mx="9">
               This project explores our planet in respect of the most livable places. 
-              It divides the planet in cells of 0.5 ° latitude and longitude. At the equator a cell spans roughly 56km x 56km at 60° longitude its size is 56 km  x 28 km.
-              Each grid cell is scored by a number of different metrices, that are weighted by the sliders below. 
+              It divides the planet in cells of 0.5 ° latitude and longitude. At the equator a cell spans roughly 56km x 56km. The grid gets denser to the poles: at 60° latitude its size is 56 km  x 28 km.
+              Each grid cell is scored by a number of different metrices, that are weighted by the sliders below.
               Some of the parameters require you to pick a personal preference, such as temperature.
               At the end of this survey you will hopefully find the perfect place for you.
               </Text>
