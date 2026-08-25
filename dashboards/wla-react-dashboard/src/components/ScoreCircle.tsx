@@ -1,9 +1,27 @@
-import { Box, Flex, Text, Theme } from "@radix-ui/themes";
+import { Box, Flex, Text } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 
-export function ScoreCircle({ score = 0.87, max = 1.0, size = 80, label = "Score", color = "green" }) {
+/**
+ * Circular gauge showing a normalized score (0..1 by default). Rendered on the
+ * paper panels, so track/progress colors default to values that read on cream.
+ */
+export function ScoreCircle({
+  score = 0.87,
+  max = 1.0,
+  size = 80,
+  trackColor = "rgba(27, 47, 40, 0.12)",
+  progressColor = "var(--gold)",
+  textColor = "var(--text-on-paper)",
+}: {
+  score?: number;
+  max?: number;
+  size?: number;
+  trackColor?: string;
+  progressColor?: string;
+  textColor?: string;
+}) {
   const value = Math.max(0, Math.min(score, max));
-  const stroke = 12;
+  const stroke = 10;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = value / max;
@@ -18,7 +36,7 @@ export function ScoreCircle({ score = 0.87, max = 1.0, size = 80, label = "Score
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="var(--gray-a5)"
+            stroke={trackColor}
             strokeWidth={stroke}
           />
           <circle
@@ -26,9 +44,9 @@ export function ScoreCircle({ score = 0.87, max = 1.0, size = 80, label = "Score
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={`var(--${color}-9)`}
+            stroke={progressColor}
             strokeWidth={stroke}
-            strokeLinecap="square"
+            strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             style={{ transition: "stroke-dashoffset 0.6s ease" }}
@@ -40,7 +58,7 @@ export function ScoreCircle({ score = 0.87, max = 1.0, size = 80, label = "Score
           justify="center"
           style={{ position: "absolute", inset: 0 }}
         >
-          <Text size="4" weight="medium" style={{ lineHeight: 1 }}>
+          <Text size="4" weight="medium" style={{ lineHeight: 1, color: textColor, fontFamily: "'JetBrains Mono', monospace" }}>
             {value.toFixed(2)}
           </Text>
         </Flex>

@@ -1,5 +1,4 @@
 import { Fragment, useMemo, useState } from "react";
-import { Box, Button, Flex, IconButton, Link, Table, Text } from "@radix-ui/themes";
 import type { MapData } from "./WorldMap";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import SatelliteMap from "./SatelliteMap";
@@ -60,8 +59,8 @@ function scoreComponentsFor(
 }
 
 /**
- * Expanded row body: per-parameter score bars on the left, satellite map of
- * the cell on the right. Rendered inside a full-width table cell.
+ * Expanded row body: score circle + per-parameter score bars on the left,
+ * satellite map of the cell on the right. Rendered inside a full-width table cell.
  */
 function ExpandedRow({ data, parameters, score, index }: {
     data: WlaDataMatrix,
@@ -74,47 +73,56 @@ function ExpandedRow({ data, parameters, score, index }: {
     const lon = data.lon[index];
 
     return (
-        <Flex gap="4" p="3" wrap="wrap" align="stretch">
-            <Box style={{ flex: '1 1 260px', minWidth: 240 }}>
-                <Box className="score-box">
-                    <ScoreCircle size={100} score={score}/>
-                </Box>
-                <Text as="div" size="2" weight="bold" mb="2">Score components</Text>
-                <Flex direction="column" gap="2">
+        <div
+            style={{
+                display: 'flex',
+                gap: 24,
+                padding: '18px 12px',
+                flexWrap: 'wrap',
+                alignItems: 'stretch',
+            }}
+        >
+            <div style={{ flex: '1 1 260px', minWidth: 240 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                    <ScoreCircle size={100} score={score} />
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginBottom: 8 }}>
+                    Score components
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {components.length === 0 && (
-                        <Text size="1" color="gray">No parameters selected.</Text>
+                        <div style={{ fontSize: 12, color: 'var(--text-on-paper-dim)' }}>No parameters selected.</div>
                     )}
                     {components.map((c) => (
-                        <Flex key={c.id} direction="column" gap="1">
-                            <Flex justify="between">
-                                <Text size="1">{c.name}</Text>
-                                <Text size="1" color="gray">
+                        <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5 }}>
+                                <span style={{ color: 'var(--text-on-paper)' }}>{c.name}</span>
+                                <span style={{ color: 'var(--text-on-paper-dim)', fontFamily: 'JetBrains Mono, monospace' }}>
                                     {Number.isNaN(c.value) ? "—" : c.value.toFixed(3)}
-                                </Text>
-                            </Flex>
+                                </span>
+                            </div>
                             <Bar
                                 score={c.value}
                                 distribution={c.contribution}
-                                scoreColor="var(--accent-9)"
-                                distributionColor="var(--gray-3)"
+                                scoreColor="var(--teal)"
+                                distributionColor="var(--gold)"
                             />
-                        </Flex>
+                        </div>
                     ))}
-                </Flex>
-            </Box>
-            <Box style={{ flex: '1 1 300px', minWidth: 240, minHeight: 320, position: 'relative' }}>
+                </div>
+            </div>
+            <div style={{ flex: '1 1 300px', minWidth: 240, minHeight: 320, position: 'relative' }}>
                 <SatelliteMap longitude={lon} latitude={lat} zoom={8} width="100%" height="100%" interactable={true} />
-            </Box>
-        </Flex>
+            </div>
+        </div>
     );
 }
 
 /**
- * Radix UI table listing every scored grid cell, sorted by weighted score
- * descending. Supports client-side pagination and per-row expansion; expanded
- * rows show a score-component breakdown and a satellite map for the cell.
- * Row clicks still forward the cell's index to `onRowClick` so the parent can
- * sync map selection.
+ * Table listing every scored grid cell, sorted by weighted score descending.
+ * Supports client-side pagination and per-row expansion; expanded rows show a
+ * score-component breakdown and a satellite map for the cell. Row clicks
+ * forward the cell's index to `onRowClick` so the parent can sync map selection.
  */
 export function CellsTable({
     data,
@@ -150,23 +158,25 @@ export function CellsTable({
     }
 
     return (
-        <Flex direction="column" gap="3">
-            <Table.Root variant="surface">
-                <Table.Header>
-                    <Table.Row>
-                        <Table.ColumnHeaderCell width="40px"></Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell width="60px">#</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Country</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Map</Table.ColumnHeaderCell>
-                    </Table.Row>
-                </Table.Header>
-                <Table.Body>
+        <div>
+            <table className="wla-table">
+                <thead>
+                    <tr>
+                        <th style={{ width: 32 }}></th>
+                        <th style={{ width: 40 }}>#</th>
+                        <th>Score</th>
+                        <th>Country</th>
+                        <th>Coordinates</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {pageIndices.map((idx, rowOnPage) => {
                         const rank = start + rowOnPage + 1;
                         const code = data.country[idx];
                         const country = (code && countryNames[code]) || code || "—";
-                        const continent = (code && countryContinents[code]) || "—";
+                        // continent is derived here to keep the earlier lookup wiring intact;
+                        // surfaced in the hover tooltip on the country cell.
+                        const continent = (code && countryContinents[code]) || "";
                         const score = mapData.values[idx];
                         const lat = data.lat[idx];
                         const lon = data.lon[idx];
@@ -174,86 +184,82 @@ export function CellsTable({
                         const isExpanded = expanded === idx;
                         return (
                             <Fragment key={idx}>
-                                <Table.Row
+                                <tr
+                                    className="wla-row"
                                     onClick={onRowClick ? () => onRowClick(idx) : undefined}
-                                    style={onRowClick ? { cursor: 'pointer' } : undefined}
                                 >
-                                    <Table.Cell style={{ verticalAlign: 'middle' }}>
-                                        <IconButton
-                                            size="3"
-                                            variant="ghost"
+                                    <td>
+                                        <button
+                                            type="button"
+                                            className="wla-expand-btn"
                                             aria-label={isExpanded ? "Collapse row" : "Expand row"}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggleExpanded(idx);
                                             }}
                                         >
-                                            {isExpanded ? <TriangleDownIcon/> : <TriangleRightIcon/>}
-
-                                        </IconButton>
-                                    </Table.Cell>
-                                    <Table.Cell style={{ verticalAlign: 'middle' }}>{rank}</Table.Cell>
-                                    <Table.Cell style={{ minWidth: 140, verticalAlign: 'middle' }}>
-                                        <Flex direction="column" gap="1">
-                                            <Text size="1">{score.toFixed(3)}</Text>
-                                            <Bar
-                                                score={score}
-                                                distribution={0}
-                                                scoreColor="var(--accent-9)"
-                                                distributionColor="transparent"
-                                            />
-                                        </Flex>
-                                    </Table.Cell>
-                                    <Table.RowHeaderCell style={{ verticalAlign: 'middle' }}>{country}</Table.RowHeaderCell>
-                                    <Table.Cell style={{ verticalAlign: 'middle' }}>
-                                        <Link
+                                            {isExpanded ? <TriangleDownIcon width={18} height={18} /> : <TriangleRightIcon width={18} height={18} />}
+                                        </button>
+                                    </td>
+                                    <td className="wla-cell-rank">{String(rank).padStart(2, '0')}</td>
+                                    <td>
+                                        <div className="wla-cell-score">
+                                            <span className="num">{score.toFixed(3)}</span>
+                                            <div className="bar"><i style={{ width: `${Math.max(0, Math.min(1, score)) * 100}%` }} /></div>
+                                        </div>
+                                    </td>
+                                    <td className="wla-region" title={continent || undefined}>{country}</td>
+                                    <td className="wla-coords">
+                                        <a
                                             href={mapsUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             {lat.toFixed(3)}°, {lon.toFixed(3)}°
-                                        </Link>
-                                    </Table.Cell>
-                                </Table.Row>
+                                        </a>
+                                    </td>
+                                </tr>
                                 {isExpanded && (
-                                    <Table.Row>
-                                        <Table.Cell colSpan={6} style={{ background: 'var(--gray-2)' }}>
+                                    <tr className="wla-expand-row">
+                                        <td colSpan={5}>
                                             <ExpandedRow data={data} score={score} parameters={parameters} index={idx} />
-                                        </Table.Cell>
-                                    </Table.Row>
+                                        </td>
+                                    </tr>
                                 )}
                             </Fragment>
                         );
                     })}
-                </Table.Body>
-            </Table.Root>
-            <Flex justify="between" align="center">
-                <Text size="2" color="gray">
+                </tbody>
+            </table>
+            <div className="wla-table-foot">
+                <span>
                     {sortedIndices.length === 0
                         ? "No scored cells"
                         : `Showing ${start + 1}–${Math.min(start + pageSize, sortedIndices.length)} of ${sortedIndices.length}`}
-                </Text>
-                <Flex gap="2" align="center">
-                    <Button
-                        size="1"
-                        variant="soft"
+                </span>
+                <div className="wla-page-controls">
+                    <button
+                        type="button"
+                        className="wla-btn-mini"
                         disabled={safePage === 0}
                         onClick={() => setPage(safePage - 1)}
                     >
                         ‹ Prev
-                    </Button>
-                    <Text size="2">Page {safePage + 1} of {pageCount}</Text>
-                    <Button
-                        size="1"
-                        variant="soft"
+                    </button>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-on-paper)' }}>
+                        Page {safePage + 1} of {pageCount}
+                    </span>
+                    <button
+                        type="button"
+                        className="wla-btn-mini"
                         disabled={safePage >= pageCount - 1}
                         onClick={() => setPage(safePage + 1)}
                     >
                         Next ›
-                    </Button>
-                </Flex>
-            </Flex>
-        </Flex>
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }

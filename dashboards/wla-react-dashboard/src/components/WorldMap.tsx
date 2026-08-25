@@ -70,12 +70,12 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
             return true;
           }
         : undefined,
-      getLineColor:  [0, 0, 0, 50],
+      getLineColor:  [233, 226, 201, 20],
       lineWidthMinPixels: 0.1,
       getLineWidth: 0.1,
       getFillColor: (_, { index }) => {
         if (selectedIndex === index)
-          return [255,0,0,255]
+          return [224, 182, 88, 255]
         else
           return index < data.values.length && data.values[index] ? [...calculateColor(data.values[index], data.bounds), 255] : [0,0,0,0]
       },
@@ -89,7 +89,7 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
       data: geojson,
       filled: false,
       stroked: true,
-      getLineColor: [0, 0, 0, 100],
+      getLineColor: [233, 226, 201, 80],
       lineWidthMinPixels: 0.5,
       getLineWidth: 0.1
     }),
@@ -117,7 +117,7 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
         onClick={(info) => {
           if (onCellClick && !info.object) onCellClick(null);
         }}
-        style={{ width: '100%', height: height, border: "1px solid black" }}
+        style={{ width: '100%', height: height }}
       />
       {showSpinner && (
         <Flex
@@ -128,12 +128,13 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'rgba(255, 255, 255, 0.6)',
+            background: 'rgba(15, 30, 25, 0.75)',
             pointerEvents: 'none',
+            color: 'var(--text-on-ink-dim)',
           }}
         >
           <Spinner size="3"/>
-          <Text size="2" color="gray">{loadingLabel}</Text>
+          <Text size="2" style={{ color: 'var(--text-on-ink-dim)' }}>{loadingLabel}</Text>
         </Flex>
       )}
     </div>

@@ -1,8 +1,7 @@
-import { Card, Flex, Heading, IconButton, Text, ScrollArea, Link, Box } from "@radix-ui/themes";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import { columnFor } from "../lib/utils";
 import SatelliteMap from "./SatelliteMap";
-import {ScoreCircle} from "./ScoreCircle";
+import { ScoreCircle } from "./ScoreCircle";
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared
@@ -18,17 +17,17 @@ export function Bar({ score, distribution, scoreColor, distributionColor }: {
     const s = Number.isNaN(score) ? 0 : Math.max(0, Math.min(1, score)) * 100;
     const d = Number.isNaN(distribution) ? 0 : Math.max(0, Math.min(1, distribution)) * 100;
     return (
-        <div style={{ position: 'relative', height: 10, background: 'var(--gray-4)', borderRadius: 3, overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', inset: 0, width: `${s}%`, background: scoreColor, opacity: 0.6 }} />
-            <div style={{ position: 'absolute', inset: 0, width: `${d}%`, background: distributionColor, opacity: 0.6 }} />
+        <div style={{ position: 'relative', height: 8, background: 'rgba(27, 47, 40, 0.12)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, width: `${s}%`, background: scoreColor, opacity: 0.65 }} />
+            <div style={{ position: 'absolute', inset: 0, width: `${d}%`, background: distributionColor, opacity: 0.65 }} />
         </div>
     );
 }
 
 /**
- * Overlay card summarising a single grid cell: coordinates, resolved country
- * name, and each checked parameter's raw value at that cell alongside its
- * weighted contribution to the overall score.
+ * Floating overlay card summarising a single grid cell. Styled to sit on top
+ * of the dark map frame using the paper palette so it reads clearly against
+ * the ink background.
  */
 export function CellInfoCard({ data, parameters, index, countryNames, onClose }: {
     data: WlaDataMatrix,
@@ -70,52 +69,90 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                 : NaN;
             return { id: p.descriptor.id, name: p.descriptor.name, weight: p.weight, value, contribution };
         });
-    
-    const score = components.reduce((acc, curr) => acc + curr.contribution, 0);
+
+    const score = components.reduce((acc, curr) => acc + (Number.isNaN(curr.contribution) ? 0 : curr.contribution), 0);
 
     return (
-        <Card
+        <div
             style={{
                 position: 'absolute',
                 top: 12,
                 right: 12,
                 width: 320,
                 maxHeight: 'calc(100% - 24px)',
-                background: 'var(--color-panel-solid)',
+                background: 'var(--paper)',
+                color: 'var(--text-on-paper)',
+                borderRadius: 12,
+                boxShadow: '0 20px 40px -10px rgba(0,0,0,0.6)',
                 zIndex: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
             }}
         >
-            <Flex justify="between" align="center" mb="2">
-                <Heading size="3">Grid Cell</Heading>
-                <IconButton size="1" variant="ghost" onClick={onClose} aria-label="Close">
+            <div style={{ padding: '14px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(27,47,40,0.12)' }}>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 600 }}>Grid Cell</div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--text-on-paper-dim)',
+                        fontSize: 16,
+                        lineHeight: 1,
+                        padding: 4,
+                    }}
+                >
                     ✕
-                </IconButton>
-            </Flex>
-            <Flex direction="column" gap="1" mb="3">
-                <Box className="score-box">
-                    <ScoreCircle size={70} score={score}/>
-                </Box>
-                <Text size="2"><strong>Country:</strong> {country}</Text>
-                <Text size="2"><strong>Coordinates:</strong> <Link target="_blank" href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
-            </Flex>
-            <ScrollArea style={{ maxHeight: 500 }}>
-                <Heading size="2" mb="1" mt="3">Map</Heading>
-                <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={300} height={290}/>
-                <Heading size="2" mb="1" mt="3">Score components</Heading>
-                <Flex direction="column" gap="2" pr="2">
+                </button>
+            </div>
+
+            <div style={{ padding: '12px 16px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+                    <ScoreCircle size={70} score={score} />
+                </div>
+                <div style={{ fontSize: 12.5 }}>
+                    <strong>Country:</strong> {country}
+                </div>
+                <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono', monospace", color: 'var(--text-on-paper-dim)' }}>
+                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
+                        {lat.toFixed(3)}°, {lon.toFixed(3)}°
+                    </a>
+                </div>
+            </div>
+
+            <div style={{ padding: '4px 16px 16px', overflowY: 'auto' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginTop: 10, marginBottom: 6 }}>
+                    Map
+                </div>
+                <div style={{ borderRadius: 8, overflow: 'hidden' }}>
+                    <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={288} height={230} />
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginTop: 14, marginBottom: 6 }}>
+                    Score components
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {components.map((c) => (
-                        <Flex key={c.id} direction="column" gap="1">
-                            <Text size="1">{c.name}</Text>
+                        <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <div style={{ fontSize: 11.5, display: 'flex', justifyContent: 'space-between' }}>
+                                <span>{c.name}</span>
+                                <span style={{ fontFamily: "'JetBrains Mono', monospace", color: 'var(--text-on-paper-dim)' }}>
+                                    {Number.isNaN(c.value) ? "—" : c.value.toFixed(3)}
+                                </span>
+                            </div>
                             <Bar
                                 score={c.value}
                                 distribution={c.contribution}
-                                scoreColor="var(--accent-9)"
-                                distributionColor="var(--gray-3)"
+                                scoreColor="var(--teal)"
+                                distributionColor="var(--gold)"
                             />
-                        </Flex>
+                        </div>
                     ))}
-                </Flex>
-            </ScrollArea>
-        </Card>
+                </div>
+            </div>
+        </div>
     );
 }
