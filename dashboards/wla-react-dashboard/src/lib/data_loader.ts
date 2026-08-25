@@ -1,6 +1,10 @@
 import type { FeatureCollection } from 'geojson';
-import wasmInit, {readParquet} from "parquet-wasm";
-import { tableFromIPC } from 'apache-arrow';
+import {
+  parquetMetadataAsync,
+  parquetRead,
+  parquetSchema,
+} from 'hyparquet';
+import type { AsyncBuffer, ParquetType } from 'hyparquet';
 import { transformCoordinates } from './geometry';
 
 export interface WlaDataMatrix {
@@ -31,52 +35,70 @@ export interface WlaParameter {
   variant: string | undefined
 }
 
+const NUMERIC_PARQUET_TYPES: ReadonlySet<ParquetType> = new Set([
+  'INT32',
+  'INT64',
+  'FLOAT',
+  'DOUBLE',
+]);
+
 /**
- * Fetch `normalized_wc.parquet` from the dev server and decode it into a
- * DataMatrixobject.
+ * Wrap an in-memory ArrayBuffer as a hyparquet AsyncBuffer so the reader can
+ * pull byte ranges from it without a network round-trip.
+ */
+function asyncBufferFromArrayBuffer(buffer: ArrayBuffer): AsyncBuffer {
+  return {
+    byteLength: buffer.byteLength,
+    slice: (start, end) => buffer.slice(start, end),
+  };
+}
+
+/**
+ * Fetch `dashboard_data.parquet` from the dev server and decode it into a
+ * WlaDataMatrix. Only numeric top-level columns whose names do not start with
+ * `_` are placed into the row-major data matrix; `_lat`, `_lon`, and
+ * `_country_code` are returned as separate arrays.
  */
 export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
-  await wasmInit();
   const res = await fetch('/data/dashboard_data.parquet');
   if (!res.ok) {
     throw new Error(`failed to fetch parquet: ${res.status} ${res.statusText}`);
   }
-  const buffer = await res.arrayBuffer();
+  const file = asyncBufferFromArrayBuffer(await res.arrayBuffer());
 
-  const wasmTable = readParquet(new Uint8Array(buffer));
-  const arrowTable = tableFromIPC(wasmTable.intoIPCStream());
+  const metadata = await parquetMetadataAsync(file);
+  const schema = parquetSchema(metadata);
+  const numRows = Number(metadata.num_rows);
 
-  // discover columns from the schema, in file order, filter out columns that start with _
-  const allColumns = arrowTable.schema.fields.map((f) => f.name);
-  const dataColumns = allColumns.filter((c) => !c.startsWith("_"))
+  const columns = schema.children
+    .map((child) => child.element)
+    .filter((el) => !el.name.startsWith('_'))
+    .filter((el) => el.type != null && NUMERIC_PARQUET_TYPES.has(el.type))
+    .map((el) => el.name);
 
-  // keep only numeric data columns — non-numeric ones can't go into a Float32Array matrix
-  const columns = dataColumns.filter((name) => {
-    const type = arrowTable.getChild(name)?.type;
-    return type && (
-      type.toString().includes('Int') ||
-      type.toString().includes('Float')
-    );
-  });
-
- 
-
-  const numRows = arrowTable.numRows;
   const numCols = columns.length;
   const data = new Float32Array(numRows * numCols);
+  const lat = new Float32Array(numRows);
+  const lon = new Float32Array(numRows);
+  const country = new Array<string>(numRows);
 
-  for (let j = 0; j < numCols; j++) {
-    const col = arrowTable.getChild(columns[j])!;
-    const colData = col.toArray();
-    for (let i = 0; i < numRows; i++) {
-      data[i * numCols + j] = colData[i];
-    }
-  }
-
-  const lat = arrowTable.getChild('_lat')?.toArray()
-  const lon = arrowTable.getChild('_lon')?.toArray()
-
-  const country = arrowTable.getChild('_country_code')?.toArray();
+  await parquetRead({
+    file,
+    metadata,
+    columns: [...columns, '_lat', '_lon', '_country_code'],
+    rowFormat: 'object',
+    onComplete: (rows) => {
+      for (let i = 0; i < numRows; i++) {
+        const row = rows[i];
+        for (let j = 0; j < numCols; j++) {
+          data[i * numCols + j] = Number(row[columns[j]]);
+        }
+        lat[i] = Number(row._lat);
+        lon[i] = Number(row._lon);
+        country[i] = row._country_code as string;
+      }
+    },
+  });
 
   return { lat, lon, country, data, numRows, numCols, columns };
 }
