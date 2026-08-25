@@ -1,6 +1,7 @@
-import { Card, Flex, Heading, IconButton, Text, ScrollArea } from "@radix-ui/themes";
+import { Card, Flex, Heading, IconButton, Text, ScrollArea, Link } from "@radix-ui/themes";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import { PieChart, Pie, Tooltip, Cell } from 'recharts';
+import SatelliteMap from "./SatelliteMap";
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared
@@ -52,6 +53,7 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
     const lon = data.lon[index];
     const code = data.country[index];
     const country = (code && countryNames[code]) || code || "—";
+    const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
 
     const colIndex = new Map<string, number>();
     data.columns.forEach((c, i) => colIndex.set(c, i));
@@ -101,9 +103,11 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
             </Flex>
             <Flex direction="column" gap="1" mb="3">
                 <Text size="2"><strong>Country:</strong> {country}</Text>
-                <Text size="2"><strong>Coordinates:</strong> {lat.toFixed(3)}°, {lon.toFixed(3)}°</Text>
+                <Text size="2"><strong>Coordinates:</strong> <Link href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
             </Flex>
-            <Heading size="2" mb="1">Score components</Heading>
+            <Heading size="2" mb="1" mt="3">Map</Heading>
+            <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={300} height={300}/>
+            <Heading size="2" mb="1" mt="3">Score components</Heading>
             <ScrollArea style={{ maxHeight: 320 }}>
                 <Flex direction="column" gap="2" pr="2">
                     {components.map((c) => (

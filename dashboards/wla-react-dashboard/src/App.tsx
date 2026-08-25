@@ -7,6 +7,7 @@ import { CellInfoCard } from './components/CellInfoCard';
 import { TopCellsTable } from './components/TopCellsTable';
 import "@radix-ui/themes/styles.css";
 import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
+import SatelliteMap from './components/SatelliteMap';
 
 function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
@@ -56,13 +57,6 @@ function App() {
   }
   },[parameters, data])
 
-  const status =
-    error != null
-      ? `error: ${error}`
-      : data != null
-        ? `loaded ${data.numRows} rows`
-        : 'loading parquet…';
-
   function handleWeightChange(id: string, w: number) {
     setParameters(parameters.map((p) => {
       return p.descriptor.id === id ? {...p, weight : w} : p
@@ -99,6 +93,7 @@ function App() {
               height='550px'
               selectedIndex={selectedIndex}
               onCellClick={(cell) => setSelectedIndex(cell ? cell.index : null)}
+              isDatasetLoading={data === null && error === null}
             />
             {data && selectedIndex != null && (
               <CellInfoCard
@@ -134,6 +129,7 @@ function App() {
               />
             </Box>
           )}
+
         </div>
     </Theme>
     // <div

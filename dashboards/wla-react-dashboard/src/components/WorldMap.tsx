@@ -9,6 +9,7 @@ import { loadCells, loadCountries } from '../lib/data_loader';
 import { scaleSequential } from 'd3-scale';
 import { interpolateViridis } from 'd3-scale-chromatic'; // npm install d3-scale-chromatic
 import { color as d3color } from 'd3-color'; // npm install d3-color
+import { Flex, Spinner, Text } from '@radix-ui/themes';
 
 const INITIAL_VIEW_STATE : OrthographicViewState = {
   target: [40, -20, 0] as [number, number, number],
@@ -41,15 +42,20 @@ const calculateColor = (value: number, bounds: [number, number]): [number, numbe
  * Renders the reprojected country outlines as a deck.gl choropleth inside an
  * OrthographicView. Point-value overlays are intentionally not rendered yet.
  */
-export function WorldMap({data, height, onCellClick, selectedIndex} : {
+export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoading} : {
   data: MapData,
   height: string,
   onCellClick?: (cell: DataCell | null) => void,
   selectedIndex?: number | null,
+  isDatasetLoading?: boolean,
 }) {
   const [geojson, setGeojson] = useState<FeatureCollection | undefined>(undefined);
   const [cells, setCells] = useState<FeatureCollection | undefined>(undefined);
   const [boundingBox, setBoundingBox] = useState<BBox | undefined>(undefined);
+
+  const isMapLoading = !geojson || !cells;
+  const showSpinner = isMapLoading || isDatasetLoading;
+  const loadingLabel = "Loading Application Data ...";
 
   const layers = [
     new GeoJsonLayer({
@@ -101,16 +107,35 @@ export function WorldMap({data, height, onCellClick, selectedIndex} : {
     }, []);
 
   return (
-    <DeckGL
-      views={new OrthographicView({ id: 'ortho', controller: {
-        maxBounds: boundingBox && [[boundingBox[0] - BBOX_OFFSET,boundingBox[1]- BBOX_OFFSET] ,[boundingBox[2] + BBOX_OFFSET,boundingBox[3] + BBOX_OFFSET]]}
-      })}
-      initialViewState={INITIAL_VIEW_STATE}
-      layers={layers}
-      onClick={(info) => {
-        if (onCellClick && !info.object) onCellClick(null);
-      }}
-      style={{ width: '100%', height: height, border: "1px solid black" }}
-    />
+    <div style={{ position: 'relative', width: '100%', height }}>
+      <DeckGL
+        views={new OrthographicView({ id: 'ortho', controller: {
+          maxBounds: boundingBox && [[boundingBox[0] - BBOX_OFFSET,boundingBox[1]- BBOX_OFFSET] ,[boundingBox[2] + BBOX_OFFSET,boundingBox[3] + BBOX_OFFSET]]}
+        })}
+        initialViewState={INITIAL_VIEW_STATE}
+        layers={layers}
+        onClick={(info) => {
+          if (onCellClick && !info.object) onCellClick(null);
+        }}
+        style={{ width: '100%', height: height, border: "1px solid black" }}
+      />
+      {showSpinner && (
+        <Flex
+          align="center"
+          justify="center"
+          gap="3"
+          direction="column"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(255, 255, 255, 0.6)',
+            pointerEvents: 'none',
+          }}
+        >
+          <Spinner size="3"/>
+          <Text size="2" color="gray">{loadingLabel}</Text>
+        </Flex>
+      )}
+    </div>
   );
 }
