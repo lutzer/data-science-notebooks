@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { WlaParameter } from "../lib/data_loader";
+import { Button, Checkbox, Select, Slider, Text, Theme } from "@radix-ui/themes";
+import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 
 /**
  * Map a dataset category to the CSS modifier class controlling the field's
@@ -39,56 +41,62 @@ export function ParameterBox({
     return (
         <div className={`wla-field ${categoryClass(parameter.descriptor.category)} ${disabled ? "is-disabled" : ""}`}>
             <div className="wla-field-top">
-                <label>
-                    <input
-                        type="checkbox"
-                        className="wla-field-check"
+                <Text as="label" size="2" weight="bold" style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                    <Checkbox
+                        size="1"
                         checked={parameter.checked}
-                        onChange={(e) => onCheckedChange(e.target.checked)}
+                        onCheckedChange={(c) => onCheckedChange(c === true)}
                     />
                     {parameter.descriptor.name}
-                </label>
+                </Text>
                 <span className="wla-field-val">{parameter.weight.toFixed(1)}</span>
             </div>
 
             {variants && (
-                <select
-                    className="wla-field-preset"
-                    value={variantValue}
-                    disabled={disabled}
-                    onChange={(e) => onVariantChange(e.target.value)}
-                >
-                    {Object.entries(variants).map(([key, label]) => (
-                        <option key={key} value={key}>
-                            {label}
-                        </option>
-                    ))}
-                </select>
+                <Theme appearance="light" accentColor="amber" grayColor="olive" radius="medium" hasBackground={false}>
+                    <Select.Root
+                        value={variantValue}
+                        disabled={disabled}
+                        onValueChange={onVariantChange}
+                        size="1"
+                    >
+                        <Select.Trigger style={{ width: "100%", marginTop: 8 }} />
+                        <Select.Content>
+                            {Object.entries(variants).map(([key, label]) => (
+                                <Select.Item key={key} value={key}>{label}</Select.Item>
+                            ))}
+                        </Select.Content>
+                    </Select.Root>
+                </Theme>
             )}
 
-            <input
-                type="range"
-                className="wla-field-slider"
+            <Slider
+                size="1"
                 min={0.1}
                 max={2.0}
                 step={0.1}
-                value={parameter.weight}
+                value={[parameter.weight]}
                 disabled={disabled}
-                onChange={(e) => onWeightChange(parseFloat(e.target.value))}
+                onValueChange={(v) => onWeightChange(v[0])}
+                style={{ marginTop: 12 }}
             />
 
             <div className="wla-field-desc">{parameter.descriptor.description}</div>
 
             {sources.length > 0 && (
                 <>
-                    <button
+                    <Button
                         type="button"
-                        className="wla-field-toggle"
+                        variant="ghost"
+                        size="1"
+                        color="gray"
                         onClick={() => setExpanded((e) => !e)}
                         aria-expanded={expanded}
+                        style={{ marginTop: 8 }}
                     >
-                        {expanded ? "Hide sources ▲" : "Show sources ▼"}
-                    </button>
+                        {expanded ? "Hide sources" : "Show sources"}
+                        {expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    </Button>
                     {expanded && (
                         <div className="wla-field-sources">
                             {sources.map((src) => (

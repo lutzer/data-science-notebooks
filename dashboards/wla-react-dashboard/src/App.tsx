@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { type MapData, WorldMap } from './components/WorldMap';
+import { useEffect, useRef, useState } from 'react';
+import { type FocusRequest, type MapData, WorldMap } from './components/WorldMap';
 import {
   type WlaDataMatrix,
   loadCountryContinents,
@@ -8,7 +8,7 @@ import {
   loadWlaMatrix,
   type WlaParameter,
 } from './lib/data_loader';
-import { Theme } from "@radix-ui/themes";
+import { Button, Flex, Theme } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
 import { CellsTable } from './components/CellsTable';
@@ -36,6 +36,15 @@ function App() {
   const [countryNames, setCountryNames] = useState<Record<string, string>>({});
   const [countryContinents, setCountryContinents] = useState<Record<string, string>>({});
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const focusKeyRef = useRef(0);
+
+  function focusOnCell(index: number) {
+    if (!data) return;
+    setSelectedIndex(index);
+    focusKeyRef.current += 1;
+    setFocusRequest({ lat: data.lat[index], lon: data.lon[index], key: focusKeyRef.current });
+  }
 
   useEffect(() => {
     Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames(), loadCountryContinents()])
@@ -131,13 +140,14 @@ function App() {
             <div className="wla-params-head">
               <h2>Parameters</h2>
             </div>
-            <div className="wla-params-actions">
-              <button className="wla-btn-mini" onClick={handleRandomizeWeights}>Randomize weights</button>
-              <button className="wla-btn-mini" onClick={handleClearWeights}>Clear all weights</button>
-            </div>
+            <Flex gap="2" wrap="wrap" className="wla-params-actions">
+              <Button variant="outline" onClick={handleRandomizeWeights}>Randomize weights</Button>
+              <Button variant="outline" onClick={handleClearWeights}>Clear all weights</Button>
+            </Flex>
             {parameters.length === 0 && (
               <div className="wla-field-desc">Loading parameters…</div>
             )}
+            <Flex direction="column" gap="1">
             {parameters.map((p) => (
               <ParameterBox
                 key={p.descriptor.id}
@@ -147,6 +157,7 @@ function App() {
                 onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}
               />
             ))}
+            </Flex>
           </aside>
 
           <section className="wla-content">
@@ -159,6 +170,7 @@ function App() {
                   data={mapData}
                   height="600px"
                   selectedIndex={selectedIndex}
+                  focusRequest={focusRequest}
                   onCellClick={(cell) => setSelectedIndex(cell ? cell.index : null)}
                   isDatasetLoading={data === null && error === null}
                 />
@@ -191,7 +203,7 @@ function App() {
                   parameters={parameters}
                   countryNames={countryNames}
                   countryContinents={countryContinents}
-                  onRowClick={setSelectedIndex}
+                  onRowClick={focusOnCell}
                 />
               )}
             </div>

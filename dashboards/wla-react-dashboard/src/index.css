@@ -182,33 +182,60 @@ body {
 }
 
 .wla-params-actions {
-  display: flex;
-  gap: 8px;
   margin: 14px 0 18px;
-  flex-wrap: wrap;
 }
 
-.wla-btn-mini {
+/* Pill-outline override for Radix Buttons inside the params actions row */
+.wla-params-actions .rt-Button {
+  background: transparent;
+  border: 1px solid black;
+  color: var(--text-on-paper);
+  border-radius: 999px;
+  padding: 6px 10px;
+  height: auto;
   font-family: 'Inter', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  background: transparent;
-  border: 1px solid rgba(27, 47, 40, 0.25);
-  color: var(--text-on-paper);
-  padding: 7px 12px;
-  border-radius: 20px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  box-shadow: none;
 }
 
-.wla-btn-mini:hover {
+.wla-params-actions .rt-Button:hover {
   background: var(--text-on-paper);
   color: var(--paper);
+  border-color: var(--text-on-paper);
 }
 
-.wla-btn-mini.wide {
-  padding: 8px 16px;
+button.rt-Button {
+  color: var(--text-on-paper);
+}
+
+/* Kill the amber focus ring on Radix controls by remapping --focus-* to gray */
+.radix-themes {
+  --focus-1: var(--gray-1);
+  --focus-2: var(--gray-2);
+  --focus-3: var(--gray-3);
+  --focus-4: var(--gray-4);
+  --focus-5: var(--gray-5);
+  --focus-6: var(--gray-6);
+  --focus-7: var(--gray-7);
+  --focus-8: var(--gray-8);
+  --focus-9: var(--gray-9);
+  --focus-10: var(--gray-10);
+  --focus-11: var(--gray-11);
+  --focus-a1: var(--gray-a1);
+  --focus-a2: var(--gray-a2);
+  --focus-a3: var(--gray-a3);
+  --focus-a4: var(--gray-a4);
+  --focus-a5: var(--gray-a5);
+  --focus-a6: var(--gray-a6);
+  --focus-a7: var(--gray-a7);
+  --focus-a8: var(--gray-a8);
+  --focus-a9: var(--gray-a9);
+  --focus-a10: var(--gray-a10);
+  --focus-a11: var(--gray-a11);
 }
 
 /* ---------- content column ---------- */
@@ -257,10 +284,8 @@ body {
 /* ---------- parameter field ---------- */
 
 .wla-field {
-  padding: 14px 0 14px 12px;
-  border-top: 1px solid var(--line-paper);
-  border-left: 3px solid transparent;
-  transition: border-color 0.15s ease, opacity 0.15s ease;
+  padding: 14px 12px;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .wla-field:first-of-type {
@@ -358,18 +383,18 @@ body {
   color: var(--text-on-paper);
 }
 
-/* per-category left accent */
+/* per-category tinted background */
 .wla-field.cat-environment {
-  border-left-color: var(--environment-color);
+  background-color: color-mix(in srgb, var(--environment-color) 14%, transparent);
 }
 .wla-field.cat-social {
-  border-left-color: var(--social-color);
+  background-color: color-mix(in srgb, var(--social-color) 14%, transparent);
 }
 .wla-field.cat-infrastructure {
-  border-left-color: var(--infrastructure-color);
+  background-color: color-mix(in srgb, var(--infrastructure-color) 14%, transparent);
 }
 .wla-field.cat-other {
-  border-left-color: var(--other-color);
+  background-color: color-mix(in srgb, var(--other-color) 14%, transparent);
 }
 
 /* checkbox — square, thin, on paper */
@@ -469,12 +494,36 @@ body {
   border-bottom: 1px solid rgba(27, 47, 40, 0.18);
 }
 
+/* Radix table header override: black text against the paper panel */
+.wla-card .rt-TableColumnHeaderCell,
+.wla-card .rt-TableColumnHeaderCell * {
+  color: var(--text-on-paper);
+}
+
+/* Radix table cell dividers: horizontal + subtle vertical rules */
+.wla-card .rt-TableRoot .rt-TableCell,
+.wla-card .rt-TableRoot .rt-TableColumnHeaderCell {
+  border-bottom: 1px solid rgba(27, 47, 40, 0.15);
+}
+.wla-card .rt-TableRoot .rt-TableCell:not(:last-child),
+.wla-card .rt-TableRoot .rt-TableColumnHeaderCell:not(:last-child) {
+  border-right: 1px solid rgba(27, 47, 40, 0.08);
+}
+
 .wla-table tbody td {
   padding: 11px 10px;
   border-bottom: 1px solid rgba(27, 47, 40, 0.08);
   font-size: 13.5px;
   vertical-align: middle;
   color: var(--text-on-paper);
+}
+
+.wla-row.rt-TableRow {
+  color: var(--text-on-paper-dim);
+}
+
+.radix-themes svg {
+  color: var(--text-on-paper-dim);
 }
 
 .wla-table tbody tr.wla-row {

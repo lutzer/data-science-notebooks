@@ -2,6 +2,8 @@ import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import { columnFor } from "../lib/utils";
 import SatelliteMap from "./SatelliteMap";
 import { ScoreCircle } from "./ScoreCircle";
+import { IconButton } from "@radix-ui/themes";
+import { Cross1Icon } from "@radix-ui/react-icons";
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared
@@ -92,22 +94,16 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
         >
             <div style={{ padding: '14px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(27,47,40,0.12)' }}>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 600 }}>Grid Cell</div>
-                <button
+                <IconButton
                     type="button"
+                    variant="ghost"
+                    color="gray"
+                    size="1"
                     onClick={onClose}
                     aria-label="Close"
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: 'var(--text-on-paper-dim)',
-                        fontSize: 16,
-                        lineHeight: 1,
-                        padding: 4,
-                    }}
                 >
-                    ✕
-                </button>
+                    <Cross1Icon />
+                </IconButton>
             </div>
 
             <div style={{ padding: '12px 16px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>

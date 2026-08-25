@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { MapData } from "./WorldMap";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import SatelliteMap from "./SatelliteMap";
@@ -6,6 +6,7 @@ import { Bar } from "./CellInfoCard";
 import { columnFor } from "../lib/utils";
 import { TriangleRightIcon, TriangleDownIcon } from "@radix-ui/react-icons";
 import { ScoreCircle } from "./ScoreCircle";
+import { Button, Flex, IconButton, Table, Text, TextField } from "@radix-ui/themes";
 
 /**
  * Return the indices of cells with a finite score, sorted by score descending.
@@ -119,6 +120,62 @@ function ExpandedRow({ data, parameters, score, index }: {
 }
 
 /**
+ * Editable page indicator: shows the current page and total page count, and
+ * accepts a typed page number. Commits on Enter or blur, clamping to
+ * `[1, pageCount]`.
+ */
+function PageInput({ page, pageCount, onPageChange }: {
+    page: number;
+    pageCount: number;
+    onPageChange: (p: number) => void;
+}) {
+    const [draft, setDraft] = useState<string>(String(page));
+    const [isFocused, setIsFocused] = useState(false);
+
+    useEffect(() => {
+        if (!isFocused) setDraft(String(page));
+    }, [page, isFocused]);
+
+    function commit() {
+        const parsed = parseInt(draft, 10);
+        if (Number.isNaN(parsed)) {
+            setDraft(String(page));
+            return;
+        }
+        const clamped = Math.max(1, Math.min(pageCount, parsed));
+        setDraft(String(clamped));
+        if (clamped !== page) onPageChange(clamped);
+    }
+
+    return (
+        <Flex align="center" gap="2">
+            <Text size="1" style={{ color: 'var(--text-on-paper-dim)' }}>Page</Text>
+            <TextField.Root
+                size="1"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                    setIsFocused(false);
+                    commit();
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                    } else if (e.key === 'Escape') {
+                        setDraft(String(page));
+                        e.currentTarget.blur();
+                    }
+                }}
+                style={{ width: 56, fontFamily: 'JetBrains Mono, monospace' }}
+                aria-label="Jump to page"
+            />
+            <Text size="1" style={{ color: 'var(--text-on-paper-dim)' }}>of {pageCount}</Text>
+        </Flex>
+    );
+}
+
+/**
  * Table listing every scored grid cell, sorted by weighted score descending.
  * Supports client-side pagination and per-row expansion; expanded rows show a
  * score-component breakdown and a satellite map for the cell. Row clicks
@@ -159,17 +216,17 @@ export function CellsTable({
 
     return (
         <div>
-            <table className="wla-table">
-                <thead>
-                    <tr>
-                        <th style={{ width: 32 }}></th>
-                        <th style={{ width: 40 }}>#</th>
-                        <th>Score</th>
-                        <th>Country</th>
-                        <th>Coordinates</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <Table.Root variant="ghost" size="1">
+                <Table.Header>
+                    <Table.Row>
+                        <Table.ColumnHeaderCell style={{ width: 32 }} />
+                        <Table.ColumnHeaderCell style={{ width: 40 }}>#</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Country</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Coordinates</Table.ColumnHeaderCell>
+                    </Table.Row>
+                </Table.Header>
+                <Table.Body>
                     {pageIndices.map((idx, rowOnPage) => {
                         const rank = start + rowOnPage + 1;
                         const code = data.country[idx];
@@ -184,14 +241,17 @@ export function CellsTable({
                         const isExpanded = expanded === idx;
                         return (
                             <Fragment key={idx}>
-                                <tr
+                                <Table.Row
                                     className="wla-row"
                                     onClick={onRowClick ? () => onRowClick(idx) : undefined}
+                                    style={onRowClick ? { cursor: 'pointer' } : undefined}
                                 >
-                                    <td>
-                                        <button
+                                    <Table.Cell>
+                                        <IconButton
                                             type="button"
-                                            className="wla-expand-btn"
+                                            variant="ghost"
+                                            size="1"
+                                            color="gray"
                                             aria-label={isExpanded ? "Collapse row" : "Expand row"}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -199,17 +259,17 @@ export function CellsTable({
                                             }}
                                         >
                                             {isExpanded ? <TriangleDownIcon width={18} height={18} /> : <TriangleRightIcon width={18} height={18} />}
-                                        </button>
-                                    </td>
-                                    <td className="wla-cell-rank">{String(rank).padStart(2, '0')}</td>
-                                    <td>
+                                        </IconButton>
+                                    </Table.Cell>
+                                    <Table.Cell className="wla-cell-rank">{String(rank).padStart(2, '0')}</Table.Cell>
+                                    <Table.Cell>
                                         <div className="wla-cell-score">
                                             <span className="num">{score.toFixed(3)}</span>
                                             <div className="bar"><i style={{ width: `${Math.max(0, Math.min(1, score)) * 100}%` }} /></div>
                                         </div>
-                                    </td>
-                                    <td className="wla-region" title={continent || undefined}>{country}</td>
-                                    <td className="wla-coords">
+                                    </Table.Cell>
+                                    <Table.Cell className="wla-region" title={continent || undefined}>{country}</Table.Cell>
+                                    <Table.Cell className="wla-coords">
                                         <a
                                             href={mapsUrl}
                                             target="_blank"
@@ -218,48 +278,54 @@ export function CellsTable({
                                         >
                                             {lat.toFixed(3)}°, {lon.toFixed(3)}°
                                         </a>
-                                    </td>
-                                </tr>
+                                    </Table.Cell>
+                                </Table.Row>
                                 {isExpanded && (
-                                    <tr className="wla-expand-row">
-                                        <td colSpan={5}>
+                                    <Table.Row className="wla-expand-row">
+                                        <Table.Cell colSpan={5}>
                                             <ExpandedRow data={data} score={score} parameters={parameters} index={idx} />
-                                        </td>
-                                    </tr>
+                                        </Table.Cell>
+                                    </Table.Row>
                                 )}
                             </Fragment>
                         );
                     })}
-                </tbody>
-            </table>
-            <div className="wla-table-foot">
-                <span>
+                </Table.Body>
+            </Table.Root>
+            <Flex justify="between" align="center" gap="3" wrap="wrap" style={{ padding: '14px 10px 6px' }}>
+                <Text size="1" style={{ color: 'var(--text-on-paper-dim)' }}>
                     {sortedIndices.length === 0
                         ? "No scored cells"
                         : `Showing ${start + 1}–${Math.min(start + pageSize, sortedIndices.length)} of ${sortedIndices.length}`}
-                </span>
-                <div className="wla-page-controls">
-                    <button
+                </Text>
+                <Flex align="center" gap="2">
+                    <Button
                         type="button"
-                        className="wla-btn-mini"
+                        variant="soft"
+                        color="gray"
+                        size="1"
                         disabled={safePage === 0}
                         onClick={() => setPage(safePage - 1)}
                     >
                         ‹ Prev
-                    </button>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-on-paper)' }}>
-                        Page {safePage + 1} of {pageCount}
-                    </span>
-                    <button
+                    </Button>
+                    <PageInput
+                        page={safePage + 1}
+                        pageCount={pageCount}
+                        onPageChange={(p) => setPage(p - 1)}
+                    />
+                    <Button
                         type="button"
-                        className="wla-btn-mini"
+                        variant="soft"
+                        color="gray"
+                        size="1"
                         disabled={safePage >= pageCount - 1}
                         onClick={() => setPage(safePage + 1)}
                     >
                         Next ›
-                    </button>
-                </div>
-            </div>
+                    </Button>
+                </Flex>
+            </Flex>
         </div>
     );
 }
