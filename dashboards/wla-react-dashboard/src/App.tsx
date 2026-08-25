@@ -8,7 +8,7 @@ import {
   loadWlaMatrix,
   type WlaParameter,
 } from './lib/data_loader';
-import { Button, Flex, Link, Theme } from "@radix-ui/themes";
+import { Button, Flex, Link, Theme, ScrollArea } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
 import { CellsTable } from './components/CellsTable';
@@ -147,17 +147,19 @@ function App() {
             {parameters.length === 0 && (
               <div className="wla-field-desc">Loading parameters…</div>
             )}
-            <Flex direction="column" gap="1">
-            {parameters.map((p) => (
-              <ParameterBox
-                key={p.descriptor.id}
-                parameter={p}
-                onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)}
-                onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)}
-                onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}
-              />
-            ))}
-            </Flex>
+            <ScrollArea type="always" scrollbars="vertical" style={{ height: 574 }}>
+              <Flex direction="column" gap="1">
+              {parameters.map((p) => (
+                <ParameterBox
+                  key={p.descriptor.id}
+                  parameter={p}
+                  onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)}
+                  onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)}
+                  onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}
+                />
+              ))}
+              </Flex>
+            </ScrollArea>
           </aside>
 
           <section className="wla-content">
@@ -165,7 +167,7 @@ function App() {
               <div className="wla-card-head">
                 <h2>World Map</h2>
               </div>
-              <div className="wla-map-frame" style={{ height: 600 }}>
+              <div className="wla-map-frame" style={{ maxHeight: 600 }}>
                 <WorldMap
                   data={mapData}
                   height="600px"

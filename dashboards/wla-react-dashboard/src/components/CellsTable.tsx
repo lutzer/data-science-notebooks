@@ -236,6 +236,10 @@ export function CellsTable({
             onRowClick?.(expanded)
     },[expanded])
 
+    useEffect(() => {
+        setExpanded(null);
+    }, [parameters]);
+
     return (
         <div>
             <Table.Root variant="ghost" size="1">
