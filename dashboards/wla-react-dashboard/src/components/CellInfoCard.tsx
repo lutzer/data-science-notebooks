@@ -96,7 +96,7 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                     <ScoreCircle size={70} score={score}/>
                 </Box>
                 <Text size="2"><strong>Country:</strong> {country}</Text>
-                <Text size="2"><strong>Coordinates:</strong> <Link href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
+                <Text size="2"><strong>Coordinates:</strong> <Link target="_blank" href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
             </Flex>
             <ScrollArea style={{ maxHeight: 500 }}>
                 <Heading size="2" mb="1" mt="3">Map</Heading>

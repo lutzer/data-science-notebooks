@@ -34,11 +34,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // compute polygons
-
-  }, [data])
-
-  useEffect(() => {
     if (data !== null && parameters.length > 0) {
     const weights = constructWeightVectorFromParamaters(parameters, data.columns);
     const scores = computeWeightedScore(data, weights); // Float32Array
@@ -101,24 +96,27 @@ function App() {
               At the end of this survey you will hopefully find the perfect place for you.
               </Text>
           </Box>
-          
-          <Heading align="center" my="2">Parameters</Heading>
-          <Flex mb="2" gap="2" justify="center">
-            <Button onClick={handleRandomizeWeights}>Randomize Weigthts</Button>
-            <Button onClick={handleClearWeights}>Clear All Weigthts</Button>
-          </Flex>
-          <Box className="score-box">
-            <ScrollArea style={{ maxHeight: 450 }}>
-              <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
-                { parameters.map((p) =>
-                  <ParameterBox key={p.descriptor.id}
-                    parameter={p}
-                    onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)}
-                    onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)}
-                    onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}/>)}
-              </Grid>
-            </ScrollArea>
-          </Box>
+          { parameters.length > 0 && (
+          <div>
+            <Heading align="center" my="2">Parameters</Heading>
+            <Flex mb="2" gap="2" justify="center">
+              <Button onClick={handleRandomizeWeights}>Randomize Weigthts</Button>
+              <Button onClick={handleClearWeights}>Clear All Weigthts</Button>
+            </Flex>
+            <Box className="score-box">
+              <ScrollArea style={{ maxHeight: 450 }}>
+                <Grid columns={{ xs:"1", sm: "2", md: "3"}} gap="3" width="auto">
+                  { parameters.map((p) =>
+                    <ParameterBox key={p.descriptor.id}
+                      parameter={p}
+                      onWeightChange={(v) => handleWeightChange(p.descriptor.id, v)}
+                      onCheckedChange={(v) => handleCheckedChange(p.descriptor.id, v)}
+                      onVariantChange={(v) => handleVariantChange(p.descriptor.id, v)}/>)}
+                </Grid>
+              </ScrollArea>
+            </Box>
+          </div>
+          )}
           <Heading align="center" my="2">World Map</Heading>
           <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '600px' }}>
             <WorldMap

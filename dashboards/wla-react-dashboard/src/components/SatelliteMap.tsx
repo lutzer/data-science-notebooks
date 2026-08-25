@@ -33,6 +33,28 @@ export default function SatelliteMap({
   layers = [],
   interactable = false,
 }: SatelliteMapProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Browsers cap live WebGL contexts (~16 on Chrome) and don't reclaim them
+  // until GC. Force-release this map's context on unmount so rapid cell/row
+  // switching doesn't leak contexts and trigger "Too many active WebGL contexts".
+  // Deferred + isConnected-guarded so React StrictMode's dev remount doesn't
+  // kill the freshly-created context.
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    return () => {
+      const canvas = wrapper?.querySelector('canvas');
+      if (!canvas) return;
+      setTimeout(() => {
+        if (canvas.isConnected) return;
+        const gl =
+          (canvas.getContext('webgl2') as WebGL2RenderingContext | null) ??
+          (canvas.getContext('webgl') as WebGLRenderingContext | null);
+        gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      }, 0);
+    };
+  }, []);
+
   const satelliteLayer = useMemo(
     () =>
       new TileLayer({
@@ -60,7 +82,7 @@ export default function SatelliteMap({
   );
 
   return (
-    <div style={{ position: 'relative', width, height }}>
+    <div ref={wrapperRef} style={{ position: 'relative', width, height }}>
       <DeckGL
         initialViewState={{ longitude, latitude, zoom, pitch, bearing }}
         controller={interactable}
