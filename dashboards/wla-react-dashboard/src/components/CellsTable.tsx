@@ -72,7 +72,7 @@ function ExpandedRow({ data, parameters, index }: {
     const lon = data.lon[index];
 
     return (
-        <Flex gap="4" p="3" wrap="wrap">
+        <Flex gap="4" p="3" wrap="wrap" align="stretch">
             <Box style={{ flex: '1 1 260px', minWidth: 240 }}>
                 <Text as="div" size="2" weight="bold" mb="2">Score components</Text>
                 <Flex direction="column" gap="2">
@@ -97,8 +97,8 @@ function ExpandedRow({ data, parameters, index }: {
                     ))}
                 </Flex>
             </Box>
-            <Box style={{ flex: '0 0 auto' }}>
-                <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={500} height={500} interactable={true} />
+            <Box style={{ flex: '1 1 300px', minWidth: 240, minHeight: 320, position: 'relative' }}>
+                <SatelliteMap longitude={lon} latitude={lat} zoom={8} width="100%" height="100%" interactable={true} />
             </Box>
         </Flex>
     );
