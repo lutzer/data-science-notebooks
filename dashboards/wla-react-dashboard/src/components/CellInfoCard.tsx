@@ -1,7 +1,8 @@
-import { Card, Flex, Heading, IconButton, Text, ScrollArea, Link } from "@radix-ui/themes";
+import { Card, Flex, Heading, IconButton, Text, ScrollArea, Link, Box } from "@radix-ui/themes";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import { columnFor } from "../lib/utils";
 import SatelliteMap from "./SatelliteMap";
+import {ScoreCircle} from "./ScoreCircle";
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared
@@ -69,6 +70,8 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                 : NaN;
             return { id: p.descriptor.id, name: p.descriptor.name, weight: p.weight, value, contribution };
         });
+    
+    const score = components.reduce((acc, curr) => acc + curr.contribution, 0);
 
     return (
         <Card
@@ -89,6 +92,9 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                 </IconButton>
             </Flex>
             <Flex direction="column" gap="1" mb="3">
+                <Box className="score-box">
+                    <ScoreCircle size={70} score={score}/>
+                </Box>
                 <Text size="2"><strong>Country:</strong> {country}</Text>
                 <Text size="2"><strong>Coordinates:</strong> <Link href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
             </Flex>

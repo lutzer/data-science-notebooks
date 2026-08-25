@@ -6,6 +6,7 @@ import SatelliteMap from "./SatelliteMap";
 import { Bar } from "./CellInfoCard";
 import { columnFor } from "../lib/utils";
 import { TriangleRightIcon, TriangleDownIcon } from "@radix-ui/react-icons";
+import { ScoreCircle } from "./ScoreCircle";
 
 /**
  * Return the indices of cells with a finite score, sorted by score descending.
@@ -62,9 +63,10 @@ function scoreComponentsFor(
  * Expanded row body: per-parameter score bars on the left, satellite map of
  * the cell on the right. Rendered inside a full-width table cell.
  */
-function ExpandedRow({ data, parameters, index }: {
+function ExpandedRow({ data, parameters, score, index }: {
     data: WlaDataMatrix,
     parameters: WlaParameter[],
+    score: number,
     index: number,
 }) {
     const components = scoreComponentsFor(data, parameters, index);
@@ -74,6 +76,9 @@ function ExpandedRow({ data, parameters, index }: {
     return (
         <Flex gap="4" p="3" wrap="wrap" align="stretch">
             <Box style={{ flex: '1 1 260px', minWidth: 240 }}>
+                <Box className="score-box">
+                    <ScoreCircle size={100} score={score}/>
+                </Box>
                 <Text as="div" size="2" weight="bold" mb="2">Score components</Text>
                 <Flex direction="column" gap="2">
                     {components.length === 0 && (
@@ -214,7 +219,7 @@ export function CellsTable({
                                 {isExpanded && (
                                     <Table.Row>
                                         <Table.Cell colSpan={6} style={{ background: 'var(--gray-2)' }}>
-                                            <ExpandedRow data={data} parameters={parameters} index={idx} />
+                                            <ExpandedRow data={data} score={score} parameters={parameters} index={idx} />
                                         </Table.Cell>
                                     </Table.Row>
                                 )}

@@ -60,7 +60,7 @@ export default function SatelliteMap({
   );
 
   return (
-    <div style={{ position: 'relative', width, height, border: "1px solid black" }}>
+    <div style={{ position: 'relative', width, height }}>
       <DeckGL
         initialViewState={{ longitude, latitude, zoom, pitch, bearing }}
         controller={interactable}
