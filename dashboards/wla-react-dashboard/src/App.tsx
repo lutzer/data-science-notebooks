@@ -4,10 +4,9 @@ import { type WlaDataMatrix, loadCountryContinents, loadCountryNames, loadDatase
 import { Theme, Grid, Heading, Text, Flex, Button, Box } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
-import { TopCellsTable } from './components/TopCellsTable';
+import { CellsTable } from './components/CellsTable';
 import "@radix-ui/themes/styles.css";
 import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
-import SatelliteMap from './components/SatelliteMap';
 
 function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
@@ -83,14 +82,14 @@ function App() {
 
   return (
     <Theme scaling="90%">
-        <Heading size="9" align="center" m="5">
+        {/* <Heading size="9" align="center" m="5">
           World Liveable Atlas
-        </Heading>
+        </Heading> */}
         <div className="dashboard">
-          <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '550px' }}>
+          <div style={{ flex: 1, position: 'relative', margin: "20px 0", height: '600px' }}>
             <WorldMap
               data={mapData}
-              height='550px'
+              height='600px'
               selectedIndex={selectedIndex}
               onCellClick={(cell) => setSelectedIndex(cell ? cell.index : null)}
               isDatasetLoading={data === null && error === null}
@@ -119,10 +118,11 @@ function App() {
             </Grid>
           {data && mapData.values.length > 0 && (
             <Box mt="5">
-              <Heading mb="2">Top 20 Grid Cells</Heading>
-              <TopCellsTable
+              <Heading mb="2">Top Cells</Heading>
+              <CellsTable
                 data={data}
                 mapData={mapData}
+                parameters={parameters}
                 countryNames={countryNames}
                 countryContinents={countryContinents}
                 onRowClick={setSelectedIndex}

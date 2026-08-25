@@ -1,6 +1,21 @@
 import type { WlaDataMatrix, WlaParameter } from "./data_loader";
 
 /**
+ * Resolve the data column a parameter contributes to. Parameters with variants
+ * pick `${id}_${variant}` (falling back to the descriptor's default variant);
+ * plain parameters map to their `id` directly. Returns null when a variant
+ * parameter has no resolvable variant.
+ */
+export function columnFor(p: WlaParameter): string | null {
+    const id = p.descriptor.id;
+    if (p.descriptor.variants) {
+        const variant = p.variant ?? p.descriptor.defaultVariant;
+        return variant ? `${id}_${variant}` : null;
+    }
+    return id;
+}
+
+/**
  * Build a per-column weight vector aligned with `dataColumns`.
  *
  * For each data column, finds the matching parameter and returns its weight

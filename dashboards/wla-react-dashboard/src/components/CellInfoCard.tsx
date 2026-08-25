@@ -1,6 +1,6 @@
 import { Card, Flex, Heading, IconButton, Text, ScrollArea, Link } from "@radix-ui/themes";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
-import { PieChart, Pie, Tooltip, Cell } from 'recharts';
+import { columnFor } from "../lib/utils";
 import SatelliteMap from "./SatelliteMap";
 
 /**
@@ -8,7 +8,7 @@ import SatelliteMap from "./SatelliteMap";
  * [0, 1] axis — one for `score`, one for `distribution`. Where they overlap
  * the colors blend, so both remain visible regardless of which is longer.
  */
-function Bar({ score, distribution, scoreColor, distributionColor }: {
+export function Bar({ score, distribution, scoreColor, distributionColor }: {
     score: number,
     distribution: number,
     scoreColor: string,
@@ -22,19 +22,6 @@ function Bar({ score, distribution, scoreColor, distributionColor }: {
             <div style={{ position: 'absolute', inset: 0, width: `${d}%`, background: distributionColor, opacity: 0.6 }} />
         </div>
     );
-}
-
-/**
- * Resolve the column name a parameter contributes at a given cell — mirrors
- * `constructWeightVectorFromParamaters` in ../lib/utils.
- */
-function columnFor(p: WlaParameter): string | null {
-    const id = p.descriptor.id;
-    if (p.descriptor.variants) {
-        const variant = p.variant ?? p.descriptor.defaultVariant;
-        return variant ? `${id}_${variant}` : null;
-    }
-    return id;
 }
 
 /**
@@ -105,10 +92,10 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
                 <Text size="2"><strong>Country:</strong> {country}</Text>
                 <Text size="2"><strong>Coordinates:</strong> <Link href={mapsUrl}>{lat.toFixed(3)}°, {lon.toFixed(3)}°</Link></Text>
             </Flex>
-            <Heading size="2" mb="1" mt="3">Map</Heading>
-            <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={300} height={300}/>
-            <Heading size="2" mb="1" mt="3">Score components</Heading>
-            <ScrollArea style={{ maxHeight: 320 }}>
+            <ScrollArea style={{ maxHeight: 500 }}>
+                <Heading size="2" mb="1" mt="3">Map</Heading>
+                <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={300} height={290}/>
+                <Heading size="2" mb="1" mt="3">Score components</Heading>
                 <Flex direction="column" gap="2" pr="2">
                     {components.map((c) => (
                         <Flex key={c.id} direction="column" gap="1">

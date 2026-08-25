@@ -13,6 +13,7 @@ interface SatelliteMapProps {
   width?: number | string;
   height?: number | string;
   layers?: Layer[];
+  interactable? : boolean
 }
 
 /**
@@ -30,6 +31,7 @@ export default function SatelliteMap({
   width = 400,
   height = 300,
   layers = [],
+  interactable = false,
 }: SatelliteMapProps) {
   const satelliteLayer = useMemo(
     () =>
@@ -61,7 +63,7 @@ export default function SatelliteMap({
     <div style={{ position: 'relative', width, height, border: "1px solid black" }}>
       <DeckGL
         initialViewState={{ longitude, latitude, zoom, pitch, bearing }}
-        controller
+        controller={interactable}
         layers={[satelliteLayer, ...layers]}
       />
       <div
