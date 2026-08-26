@@ -56,6 +56,7 @@ At-a-glance list of sources currently wired up. See `DATASETS.md` for methodolog
 | 35 | `corruption` | V-Dem `v2x_corr` (reuses the same `vdemdata` cache as 34) |
 | 36 | `education` | GDL Subnational HDI v8.3 (Education Index) + GDL Shapefiles v6.5, via Zenodo mirror |
 | 37 | `people_happiness` | World Happiness Report 2026 Figure 2.1 (Cantril ladder 3-year average per country) |
+| 38 | `working_hours` | ILOSTAT `HOW_2EMP_SEX_NB_A` — Average weekly hours actually worked per employed person (ILO Modelled Estimates) |
 
 ### Shared boundaries
 - Natural Earth 50m admin_0 polygons (via `regionmask`) — used to rasterize every country-level layer (19, 33, 34, 35, and the ThinkHazard side of 18).

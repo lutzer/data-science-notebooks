@@ -286,8 +286,13 @@ async def download(url: str, filename: str):
     # Create the parent directory if it doesn't exist
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
+    # Cloudflare-fronted APIs (ILOSTAT rplumber, some Zenodo mirrors) return an
+    # empty 200 for the default httpx User-Agent. A generic browser UA is the
+    # least-magic way to get through without per-caller header plumbing.
+    headers = {"User-Agent": "Mozilla/5.0"}
+
     try:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+        async with httpx.AsyncClient(follow_redirects=True, headers=headers) as client:
             async with client.stream('GET', url) as r:
                 r.raise_for_status()
                 total = int(r.headers.get('content-length', 0))

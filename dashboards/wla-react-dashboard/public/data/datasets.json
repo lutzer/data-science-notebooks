@@ -275,6 +275,19 @@
         { "name": "World Happiness Report 2026", "url": "https://worldhappiness.report/" },
         { "name": "Gallup World Poll (Cantril ladder)", "url": "https://news.gallup.com/poll/122453/understanding-gallup-uses-cantril-scale.aspx" }
       ]
+    },
+    {
+      "id": "working_hours",
+      "number": 38,
+      "name": "Working Hours",
+      "category": "Social & Economy",
+      "tier": "C",
+      "defaultWeight": 1.0,
+      "description": "How many hours the average employed person works per week. Lower hours mean more leisure and better work-life balance, so higher scores here mean shorter working weeks.",
+      "sources": [
+        { "name": "ILOSTAT — ILO Modelled Estimates (ILOEST)", "url": "https://ilostat.ilo.org/methods/concepts-and-definitions/ilo-modelled-estimates/" },
+        { "name": "Indicator HOW_2EMP_SEX_NB_A", "url": "https://rplumber.ilo.org/data/indicator/?id=HOW_2EMP_SEX_NB_A&format=.csv" }
+      ]
     }
   ]
 }
