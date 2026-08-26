@@ -80,3 +80,11 @@ jupyter lab
 ```
 
 Then open notebooks in numeric order or run all notebooks by executing `00_main.ipynb` 
+
+## Todo
+
+* correct income, not by gdp per capita, because its mostly concentrated in large companies
+* add some cultural/music metric
+* add some food/gastronomy metric
+* add some metric for public transport / public infratructure / sports infrasturcture, etc
+* add some metric for income tax

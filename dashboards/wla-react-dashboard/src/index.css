@@ -277,7 +277,6 @@ button.rt-Button {
   position: relative;
   background: var(--ink-2);
   border-radius: 10px;
-  overflow: hidden;
   border: 1px solid rgba(233, 226, 201, 0.08);
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { type FocusRequest, type MapData, WorldMap } from './components/WorldMap';
+import { type DataCell, type FocusRequest, type MapData, WorldMap } from './components/WorldMap';
 import {
   type WlaDataMatrix,
   loadCountryContinents,
@@ -36,12 +36,14 @@ function App() {
   const [countryNames, setCountryNames] = useState<Record<string, string>>({});
   const [countryContinents, setCountryContinents] = useState<Record<string, string>>({});
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedCellInfoIndex, setSelectedCellInfoIndex] = useState<number | null>(null);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusKeyRef = useRef(0);
 
   function focusOnCell(index: number) {
     if (!data) return;
     setSelectedIndex(index);
+    setSelectedCellInfoIndex(null);
     focusKeyRef.current += 1;
     setFocusRequest({ lat: data.lat[index], lon: data.lon[index], key: focusKeyRef.current });
   }
@@ -119,6 +121,11 @@ function App() {
     }));
   }
 
+  function handleOnCellClicked(cell: DataCell | null) {
+    setSelectedIndex(cell ? cell.index : null)
+    setSelectedCellInfoIndex(cell ? cell.index : null)
+  }
+
   return (
     <Theme scaling="90%" appearance="dark" accentColor="amber" grayColor="olive" radius="medium">
       <div className="wla-wrap">
@@ -168,23 +175,23 @@ function App() {
                 <h2>World Map</h2>
               </div>
               <div className="wla-map-frame" style={{ maxHeight: 600 }}>
+                {data && selectedCellInfoIndex != null && (
+                  <CellInfoCard
+                    data={data}
+                    parameters={parameters}
+                    index={selectedCellInfoIndex}
+                    countryNames={countryNames}
+                    onClose={() => setSelectedCellInfoIndex(null)}
+                  />
+                )}
                 <WorldMap
                   data={mapData}
                   height="600px"
                   selectedIndex={selectedIndex}
                   focusRequest={focusRequest}
-                  onCellClick={(cell) => setSelectedIndex(cell ? cell.index : null)}
+                  onCellClick={handleOnCellClicked}
                   isDatasetLoading={data === null && error === null}
                 />
-                {data && selectedIndex != null && (
-                  <CellInfoCard
-                    data={data}
-                    parameters={parameters}
-                    index={selectedIndex}
-                    countryNames={countryNames}
-                    onClose={() => setSelectedIndex(null)}
-                  />
-                )}
               </div>
               <div className="wla-legend">
                 <span>Lower score</span>
