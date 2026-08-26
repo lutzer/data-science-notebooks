@@ -68,7 +68,7 @@ Your shell prompt should now show the env path.
 jupyter lab
 ```
 
-A browser tab opens at `http://localhost:8888/lab`. Open `notebooks/getting-started.ipynb` and run the cells to confirm everything works.
+A browser tab opens at `http://localhost:8888/lab`. Open `notebooks/world-livable-atlas/00_main.ipynb` — the papermill orchestrator that runs every downstream notebook — to get going.
 
 Prefer the classic notebook UI? Use `jupyter notebook` instead.
 
@@ -100,11 +100,13 @@ conda env remove -n data_science
 
 ```
 .
-├── .env/                       # Conda environment (git-ignored)
-├── data/                       # Local data files (contents git-ignored)
+├── data/                                # Local data files (contents git-ignored)
+├── dashboards/
+│   └── wla-react-dashboard/             # React + Vite dashboard
 ├── notebooks/
-│   └── getting-started.ipynb   # Sample notebook — start here
-├── environment.yml             # Conda dependency spec
+│   └── world-livable-atlas/             # Analysis pipeline (see its README.md)
+├── environment.yml                      # Conda dependency spec
+├── CLAUDE.md
 ├── .gitignore
 └── README.md
 ```

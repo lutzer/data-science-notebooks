@@ -1,66 +1,53 @@
-# Project Description
+# World Livable Atlas — Project Brief
 
-|  |  |
-| --- | --- |
-| Name | World Liveable Atlas |
-| Description | Lorem ipsum |
+## What it is
 
-## Datasets
+A personal livability index scored on a global 0.5°×0.5° land grid. Each grid cell is scored by ~20 environmental, infrastructural, and socio-economic metrics, then combined into a single composite score using **user-controlled weights**. Some metrics also take a personal preference (e.g. ideal temperature range). The output is an interactive map: slide the weights to reflect what *you* care about, and the atlas surfaces the places that fit.
 
-* should be as complete as possible.
-* should preferbly be small downloads
-* should be publicly accessible
+The atlas is a data-exploration project, not a relocation service. Its purpose is to make the trade-offs between climate, cost, freedom, healthcare access, urbanity, etc. visually and quantitatively legible.
 
-## Suggested Sources
+## Design decisions
 
-**Use DATASETS.md as the source of information instead of this**
+Decisions that were open when this project started and have since been resolved:
 
-**Closeness to water / mountains**
-- OpenStreetMap (via the Overpass API or the `osmnx` Python library) has coastlines, rivers, lakes, and elevation-tagged features — free and global.
-- For elevation/terrain (to derive "mountainous"), use NASA's SRTM or ETOPO1 digital elevation data. You can compute local terrain ruggedness from these rasters.
-- Natural Earth (naturalearthdata.com) is great for simplified coastlines/water bodies at a global scale if you don't need OSM's precision.
+- **Resolution: 0.5°×0.5° land grid.** ~56 km at the equator, denser toward the poles (~28 km lat at 60°). Coarse enough that every dataset can be interpolated onto it without heavy preprocessing, fine enough for a legible world map. Ocean cells are masked once, in `02_grid.ipynb`, and every downstream layer inherits that mask.
+- **One canonical grid, everything snaps to it.** All per-metric notebooks write a 2-D `(lat, lon)` NetCDF variable on the same grid (`grid.nc`), so layers are directly stackable and comparable. Country-level metrics are rasterized once using Natural Earth 50m admin_0 polygons via `regionmask` (see `03_region_mask.ipynb`).
+- **Confidence tiers.** Every metric is tagged 🟢 A / 🟡 B / 🔴 C in `DATASETS.md` — from "clean global raster, minimal preprocessing" down to "country-level flat fill, real methodology choices". This is deliberately visible so that a user does not mistake a country-flat corruption score for a street-level measurement.
+- **Normalize before weighting.** Variables have wildly different ranges (income in USD vs. distance in km vs. a 0–1 vulnerability index). Each layer is normalized independently in the `9x_` stage so user weights actually mean *relative importance*, not "importance further inflated by whichever variable happens to have the biggest spread". The reasoning is written out in the *Scaling* section of `DATASETS.md`.
+- **Grid ↔ city blend for point-source data.** Numbeo (cost, crime) and GaWC (urbanity) are city-level. Rather than picking one per cell, city values are diffused outward via exponential decay from city centroids on an Equal Earth projection, then blended over the country/grid baseline. This gives a continuous surface everywhere instead of a sparse dot map.
+- **User weights live in `weights.yaml`.** Editable, human-readable, applied by `97_scoring.ipynb`. Adding a new metric = adding one line here plus one new notebook (see the *Adding a variable* section of `README.md`).
 
-**Climate (current)**
-- WorldClim (worldclim.org) — gridded historical climate averages (temperature, precipitation) worldwide, free download.
-- Köppen-Geiger climate classification datasets (there are pre-computed global raster versions) if you want categorical climate types rather than raw numbers.
+## Data selection principles
 
-**Climate change / future risk**
-- CMIP6 climate projections (via Copernicus Climate Data Store or NASA NEX-GDDP) for future temperature/precip trends.
-- Notre Dame Global Adaptation Initiative (ND-GAIN) has a country-level climate vulnerability index — much easier to work with than raw climate models if you want something simple.
-- Climate Central or World Bank Climate Change Knowledge Portal for additional risk indicators (flooding, heat days, etc.)
+The metric-picking bar is deliberately narrow:
 
-**Income**
-- World Bank Open Data (GDP per capita, by country).
-- For sub-national/city-level: Eurostat (Europe), U.S. Census/BLS (US), or Numbeo (crowdsourced, global, city-level).
+- **Publicly accessible.** No paywalled or auth-only sources except where an obvious free equivalent exists (e.g. V-Dem substitutes for CPI/WGI).
+- **Global coverage preferred.** A dataset that only covers OECD countries gets rejected unless there is no global alternative for that concept.
+- **Small downloads or streamable.** Prefer datasets that fit in `data/` locally or can be streamed block-by-block with `rasterio.Window` (see `21_population_density.ipynb`, `24_healthcare_access.ipynb`).
+- **Yearly averages, most recent year available.** No real-time data, no monthly snapshots. Places don't become livable or unlivable overnight.
 
-**Living costs**
-- Numbeo (numbeo.com) is the standard here — crowdsourced cost-of-living indices by city, with an API for scraping if you're careful about rate limits.
-- Expatistan is a similar alternative.
+## Pipeline at a glance
 
-**Air quality**
-- OpenAQ (openaq.org) — free, real-time and historical air quality data from monitoring stations worldwide, has an API.
-- WHO Global Ambient Air Quality Database for broader coverage.
+```
+0x_  foundation      →  grid.nc, country_mask.nc
+1x_  environment     ┐
+2x_  infrastructure  ├→  one <variable>.nc per metric in data/processed/
+3x_  society/econ    ┘
+9x_  synthesis       →  normalize → weighted score → dashboard export
+```
 
-**Crime rate**
-- This is the hardest to get consistently — crime stats aren't standardized globally.
-- UNODC (UN Office on Drugs and Crime) has country-level data.
-- Numbeo again has a crowdsourced city-level Safety Index.
-- For specific countries, national police/statistics agencies (e.g., FBI UCR for the US, Eurostat for the EU) are more reliable if you're focusing regionally.
+Run `00_main.ipynb` to execute every notebook end-to-end via papermill. Captured outputs land in `output/`.
 
-**Closeness to a bigger city**
-- Derivable yourself: take a list of city coordinates + population (GeoNames or the Natural Earth "populated places" dataset) and compute distances from any point.
+## Where to look next
 
-**Cultural attractions**
-- OpenStreetMap tags (museum, theatre, gallery, artwork, etc.) via Overpass — gives you a density count per area.
-- Wikidata/Wikipedia (via SPARQL queries) has structured data on landmarks and cultural sites globally.
+- **`README.md`** — notebook structure, current dataset inventory (which metrics are wired, from which source), shared helpers in `common.py`, and the 5-step recipe for adding a new variable.
+- **`DATASETS.md`** — per-metric methodology, confidence tiers, caveats, and the normalization/weighting theory that underpins the `9x_` stage.
 
-**Concerts / live music**
-- Trickiest one — no clean global dataset. Songkick and Bandsintown have APIs but are geared toward event listings, not historical density. You'd likely use them as a proxy (e.g., "number of upcoming shows in radius X") rather than a historical dataset.
+## Scope & known limits
 
-## A few structural decisions to make early
+What this atlas explicitly is *not*:
 
-1. **Resolution**: Are you scoring countries, cities, or an actual grid (e.g., 0.5°×0.5° cells) across the globe? Grid gives you the nicest map but means every dataset needs to be spatially joined/interpolated to that grid.
-2. **Normalization & weighting**: You'll want to normalize each variable (0–1 scale) and let yourself set personal weights (e.g., "air quality matters more to me than concerts") — this is really the core of the "personal taste" part.
-3. **City-level vs point-level**: Numbeo/crime/cost-of-living data is usually per-city, while climate/terrain is continuous. You'll likely end up anchoring everything to a city list and computing surrounding-area scores from there, which is simpler than a full continuous grid.
-
-Want me to help you set up an actual project scaffold — e.g., a Python pipeline that pulls a few of these sources, builds a scoring dataframe, and renders a choropleth/heatmap you can tune interactively?
+- **Not street-level.** 0.5° cells are ~56 km wide — no neighborhood-scale claims.
+- **Not real-time.** All metrics are yearly averages; a spike in air quality this week won't show up.
+- **Tilted Western / urban** where the underlying data is crowdsourced (Numbeo, OSM) or biased toward high-income countries. Called out in the *Cross-cutting notes* section of `DATASETS.md`.
+- **Country-flat by construction** for several social/economic layers (V-Dem freedom & corruption, ND-GAIN climate vulnerability, and the UNODC-only regions of crime) — intra-country variation is absent unless a city overlay fills it in.

@@ -188,6 +188,23 @@ How much political corruption is present in the society living in that grid cell
 - **Coverage caveats:** V-Dem covers ~180 countries; small Pacific / Caribbean / Gulf states (Brunei, Belize, Bahamas, Micronesia, most SIDS) are absent and stay `NaN` — `weighted_score`'s per-cell weight renormalization tolerates this. Country-level — flat inside each country border by construction, 🔴 Tier C.
 - **Not used:** Transparency International CPI, World Bank WGI Control of Corruption (`CC.EST`), ICRG Political Risk Services. All would give broadly the same country ranking; the first two are documented above, ICRG is paywalled.
 
+### 36 education — good news, decent resolution
+
+Global Data Lab Subnational HDI / Education Index (globaldatalab.org/shdi) — free, downloadable, covers ~1,700 admin-2 regions in 161 countries, based on mean + expected years of schooling. This is the best option because it's sub-national, not just national.
+Kummu et al. gridded HDI/GDP dataset — an actual 5 arc-minute (~9km) raster of HDI (education is one of its three components), covering 1990–2015. This one you could genuinely resample onto your 0.5° grid without a polygon-fill step.
+UNESCO UIS also has literacy/enrollment by country if you want a simpler national-only fallback.
+
+### 37 social_connection — weak spatial resolution, national only
+
+Gallup World Poll has social-support questions ("if in trouble, do you have relatives/friends to count on") for ~140 countries since 2005. Free 3-year averages are published via the World Happiness Report data page; full microdata requires institutional access (universities often have it via library subscriptions).
+Meta-Gallup State of Social Connections (2022) — free report with loneliness/social-support figures for a smaller set of countries.
+There's no subnational or gridded version of either — you'd be painting whole countries the same color.
+
+### 38 worklife_balance — also national only, and narrower coverage
+
+OECD Better Life Index has a "Work-Life Balance" dimension (long working hours %, leisure time) but only covers ~40 OECD + partner countries — most of the world would be blank.
+For broader country coverage as a proxy, ILO working-hours statistics (average weekly hours, % working >48h) cover more countries and could substitute or supplement.
+
 ---
 
 ## Cultural
