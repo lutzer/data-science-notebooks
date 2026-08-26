@@ -74,7 +74,7 @@ def load_country_mask():
     )
 
 
-def dominant_region_mask(regions, lon, lat, chunk_size=300):
+def dominant_region_mask(regions, lon, lat, oversample=10):
     """Assign each cell to the region with the largest fractional coverage.
 
     Drop-in replacement for ``regions.mask(lon, lat)`` that behaves correctly
@@ -83,21 +83,30 @@ def dominant_region_mask(regions, lon, lat, chunk_size=300):
     assigned to whichever country / region actually occupies most of the
     cell, rather than being dropped.
 
-    Processes ``regions`` in chunks so peak memory stays bounded — a single
-    ``mask_3D_frac_approx`` call on ~3000 ADM1 polygons at 0.5° globally
-    allocates several GB and blows the kernel. Within each chunk we keep only
-    the running ``(best_frac, best_number)`` pair, so total memory is
-    proportional to ``chunk_size × lat × lon`` rather than the full region set.
+    Rasterises every polygon in one ``rasterio.features.rasterize`` call at
+    ``oversample`` × the target resolution (default ``10`` → 100 sub-pixels
+    per atlas cell), then takes the mode of the sub-pixel region ids per
+    cell via a vectorised offset-bincount. This is a Monte-Carlo estimate of
+    the true fractional coverage — the same kind of estimate the previous
+    ``mask_3D_frac_approx`` implementation produced — but computed by a
+    single C-level rasterisation instead of one call per polygon chunk. On
+    typical ADM-1 sets (~1 800–3 600 polygons) it is roughly an order of
+    magnitude faster and does not blow up on very large region counts.
 
     Parameters
     ----------
     regions : regionmask.Regions
-        Region set to rasterise.
+        Region set to rasterise. Polygons must be in EPSG:4326 (lon/lat) —
+        every caller in this repo already ensures this via ``.to_crs`` or by
+        construction.
     lon, lat : array-like or xarray.DataArray
-        Cell centre coordinates, as accepted by regionmask.
-    chunk_size : int, optional
-        Regions per ``mask_3D_frac_approx`` call. The default of 300 keeps peak
-        allocation well below 1 GB on a global 0.5° grid.
+        Cell-centre coordinates on a regular grid.
+    oversample : int, optional
+        Sub-samples per target cell along each axis. Total samples per cell
+        is ``oversample ** 2``. Higher values give a more faithful
+        approximation of the true dominant region but cost more memory and
+        runtime; ``10`` is a good default for a 0.5° atlas grid on typical
+        admin-1 polygons.
 
     Returns
     -------
@@ -106,37 +115,91 @@ def dominant_region_mask(regions, lon, lat, chunk_size=300):
         outside every region) — matching the return shape of ``.mask()``.
     """
     import numpy as np
+    import shapely
+    from rasterio.features import rasterize
+    from rasterio.transform import from_origin
+
+    lat_vals = np.asarray(lat.values if hasattr(lat, "values") else lat)
+    lon_vals = np.asarray(lon.values if hasattr(lon, "values") else lon)
+    n_lat, n_lon = lat_vals.size, lon_vals.size
+    dlat = float(abs(lat_vals[1] - lat_vals[0]))
+    dlon = float(abs(lon_vals[1] - lon_vals[0]))
+    lat_ascending = lat_vals[0] < lat_vals[-1]
+
+    # rasterio's affine transform expects north-up (row 0 = north), so use
+    # the northernmost cell edge as the origin regardless of the input's
+    # latitude ordering, and flip on the way out if needed.
+    north = float(lat_vals.max()) + dlat / 2
+    west = float(lon_vals.min()) - dlon / 2
+    sub_h = n_lat * oversample
+    sub_w = n_lon * oversample
+    transform = from_origin(west, north, dlon / oversample, dlat / oversample)
 
     numbers = np.asarray(list(regions.numbers))
-    best_frac = None
-    best_num = None
-    for start in range(0, len(numbers), chunk_size):
-        chunk_nums = numbers[start:start + chunk_size]
-        frac = regions[list(chunk_nums)].mask_3D_frac_approx(lon, lat)
-        if frac.sizes["region"] == 0:
-            # ``mask_3D_frac_approx`` silently drops regions with zero coverage
-            # on the entire grid; a whole chunk of microstates can vanish. Skip.
-            continue
-        # Read the actual region numbers back from the mask output — positions
-        # in ``frac`` do NOT line up with positions in ``chunk_nums`` when some
-        # regions get dropped (Vatican, Monaco, etc. on a 0.5° grid).
-        present_numbers = frac["region"].values
-        chunk_max = frac.max("region")
-        chunk_argmax = frac.argmax("region")
-        chunk_best = xr.DataArray(
-            present_numbers[chunk_argmax.values],
-            coords=chunk_argmax.coords,
-            dims=chunk_argmax.dims,
-        ).astype("float64")
-        if best_frac is None:
-            best_frac = chunk_max
-            best_num = chunk_best
-        else:
-            update = chunk_max > best_frac
-            best_frac = xr.where(update, chunk_max, best_frac)
-            best_num = xr.where(update, chunk_best, best_num)
+    n_regions = numbers.size
+    # Rasterize with ids 1..N; bucket 0 is reserved for "no polygon here".
+    # Use uint32 once the id space exceeds uint16 to stay safe on very large
+    # region sets (>65 535 polygons).
+    raster_dtype = "uint16" if n_regions < 65535 else "uint32"
+    shapes_iter = []
+    for i, n in enumerate(numbers):
+        geom = regions[int(n)].polygon
+        if not geom.is_valid:
+            geom = shapely.make_valid(geom)
+        shapes_iter.append((geom, i + 1))
+    raster = rasterize(
+        shapes_iter,
+        out_shape=(sub_h, sub_w),
+        transform=transform,
+        fill=0,
+        all_touched=False,
+        dtype=raster_dtype,
+    )
+    if lat_ascending:
+        # from_origin gave us row 0 = north; flip so row 0 matches lat[0].
+        raster = raster[::-1]
 
-    return best_num.where(best_frac > 0)
+    # Regroup into (n_cells, oversample²) so we can take a mode per cell.
+    per_cell = (
+        raster.reshape(n_lat, oversample, n_lon, oversample)
+        .transpose(0, 2, 1, 3)
+        .reshape(n_lat * n_lon, oversample * oversample)
+    )
+    n_rows = per_cell.shape[0]
+    max_id = n_regions + 1  # bucket 0 = no polygon
+
+    # Vectorised mode via chunked offset-bincount. Counts fit in int32 (max
+    # count per cell is oversample², ≤10 000 for any sane oversample). Chunk
+    # size scales with N so the (rows × max_id) count matrix stays around
+    # 500 MB regardless of polygon count.
+    rows_per_chunk = max(1000, int(5e8 // (max_id * 4)))
+    best_id = np.zeros(n_rows, dtype=np.int64)
+    for start in range(0, n_rows, rows_per_chunk):
+        end = min(start + rows_per_chunk, n_rows)
+        block = per_cell[start:end].astype(np.int64, copy=False)
+        c = end - start
+        offsets = np.arange(c, dtype=np.int64)[:, None] * max_id
+        counts = np.bincount(
+            (block + offsets).ravel(), minlength=c * max_id
+        ).reshape(c, max_id).astype(np.int32)
+        # Ignore bucket 0 (no polygon) unless every polygon bucket is empty —
+        # i.e. the cell was entirely outside every region.
+        non_empty = counts[:, 1:].sum(axis=1) > 0
+        counts[non_empty, 0] = 0
+        best_id[start:end] = counts.argmax(axis=1)
+
+    grid_ids = best_id.reshape(n_lat, n_lon)
+    valid = grid_ids > 0
+    result = np.full(grid_ids.shape, np.nan, dtype="float64")
+    # Map internal 1..N back to the caller's region.numbers (which may be
+    # non-contiguous or non-integer — regionmask sometimes drops microstates).
+    result[valid] = numbers.astype("float64")[grid_ids[valid] - 1]
+
+    return xr.DataArray(
+        result,
+        coords={"lat": lat, "lon": lon},
+        dims=("lat", "lon"),
+    )
 
 
 def load_weights(path=WEIGHTS_FILE):
