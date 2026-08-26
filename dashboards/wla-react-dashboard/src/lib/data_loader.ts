@@ -68,7 +68,7 @@ function asyncBufferFromArrayBuffer(buffer: ArrayBuffer): AsyncBuffer {
  * separate arrays.
  */
 export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
-  const res = await fetch('/data/dashboard_data.parquet');
+  const res = await fetch(`${import.meta.env.BASE_URL}data/dashboard_data.parquet`);
   if (!res.ok) {
     throw new Error(`failed to fetch parquet: ${res.status} ${res.statusText}`);
   }
@@ -117,7 +117,7 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
 }
 
 export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {
-  const response = await fetch('/data/datasets.json');
+  const response = await fetch(`${import.meta.env.BASE_URL}data/datasets.json`);
   if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
   const data = await response.json();
   return data.datasets;
@@ -128,7 +128,7 @@ export async function loadDatasetDescriptors() : Promise<DatasetDiscriptor[]> {
  * the Python prototype) and reproject the whole FeatureCollection.
  */
 export async function loadCountries(): Promise<FeatureCollection> {
-  const res = await fetch("/data/ne_110m_admin_0_countries.geojson");
+  const res = await fetch(`${import.meta.env.BASE_URL}data/ne_110m_admin_0_countries.geojson`);
   if (!res.ok) {
     throw new Error(`failed to fetch countries geojson: ${res.status}`);
   }
@@ -143,7 +143,7 @@ export async function loadCountries(): Promise<FeatureCollection> {
  * Fetches the Polygons for all grid cells.
  */
 export async function loadCells(): Promise<FeatureCollection> {
-  const res = await fetch("/data/dashboard_cells.geojson");
+  const res = await fetch(`${import.meta.env.BASE_URL}data/dashboard_cells.geojson`);
   if (!res.ok) {
     throw new Error(`failed to fetch cells geojson: ${res.status}`);
   }
