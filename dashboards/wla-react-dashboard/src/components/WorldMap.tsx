@@ -6,7 +6,7 @@ import { reprojectGeojson, transformCoordinates } from '../lib/geometry';
 import { useEffect, useState } from 'react';
 import bbox from '@turf/bbox';
 import { loadCells, loadCountries } from '../lib/data_loader';
-import { scaleSequential } from 'd3-scale';
+import { scaleSequential, scaleSequentialSqrt } from 'd3-scale';
 import { interpolateViridis } from 'd3-scale-chromatic'; // npm install d3-scale-chromatic
 import { color as d3color } from 'd3-color'; // npm install d3-color
 import { Flex, Spinner, Text } from '@radix-ui/themes';
@@ -41,7 +41,7 @@ export interface FocusRequest {
 }
 
 
-const colorScale = (bounds : [number, number]) => scaleSequential(interpolateViridis).domain(bounds);
+const colorScale = (bounds : [number, number]) => scaleSequentialSqrt(interpolateViridis).domain(bounds)
 
 const calculateColor = (value: number, bounds: [number, number]): [number, number, number] => {
   const c = d3color(colorScale(bounds)(value))!.rgb();

@@ -83,7 +83,7 @@ export function computeWeightedScore(matrix: WlaDataMatrix, weights: number[]): 
                 den += w;
             }
         }
-        out[i] = den > 0 ? num / den : NaN;
+        out[i] = den > 0 ? num / den : 0;
     }
     return out;
 }
