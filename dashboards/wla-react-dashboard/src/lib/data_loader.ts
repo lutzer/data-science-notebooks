@@ -102,7 +102,8 @@ export async function loadWlaMatrix(): Promise<WlaDataMatrix> {
       for (let i = 0; i < numRows; i++) {
         const row = rows[i];
         for (let j = 0; j < numCols; j++) {
-          data[i * numCols + j] = Number(row[columns[j]]);
+          const v = row[columns[j]];
+          data[i * numCols + j] = v == null ? NaN : Number(v);
         }
         lat[i] = Number(row._lat);
         lon[i] = Number(row._lon);
