@@ -220,7 +220,7 @@ function App() {
         </div>
 
         <footer className="wla-footer">
-          Created in 2026 by Lutz Reiter - <Link href="https://github.com/lutzer/data-science-notebooks">View Github</Link>
+          Created in 2026 by Lutz Reiter - <Link href="https://github.com/lutzer/world-liveable-atlas/">View Github</Link>
         </footer>
       </div>
     </Theme>

@@ -1,13 +1,13 @@
-# World Livable Atlas
+# World Liveable Atlas
 
 *This project explores our planet in respect of the most livable places. It divides the planet in cells of 0.5 ° latitude and longitude. At the equator a cell spans roughly 56km x 56km. The grid gets denser to the poles: at 60° latitude its size is 56 km x 28 km. Each grid cell is scored by a number of different metrices, that are weighted by the sliders below. Some of the parameters require you to pick a personal preference, such as temperature. At the end of this survey you might find the perfect place for you to live.*
 
-See the atlas here: [World Livable Atlas](https://lutzer.github.io/world-livable-atlas/)
+See the atlas here: [World Liveable Atlas](https://lutzer.github.io/world-liveable-atlas/)
 
 ## Project Documentation:
 
-* Analysis Notebooks: [World Livable atlas](notebooks/world-livable-atlas/README.md) 
-* Dashboard App [WLA Dashboard](dashboards/wla-react-dashboard/README.md)
+* Analysis Notebooks: [World Liveable Atlas Data Analysis](notebooks/world-livable-atlas/README.md) 
+* Dashboard App [World Liveable Atlas Dashboard](dashboards/wla-react-dashboard/README.md)
 
 ## Development
 
