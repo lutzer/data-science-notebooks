@@ -262,6 +262,19 @@
         { "name": "Global Data Lab Subnational HDI v8.3", "url": "https://globaldatalab.org/shdi/" },
         { "name": "Zenodo mirror (Smits & Permanyer 2025)", "url": "https://zenodo.org/records/17467221" }
       ]
+    },
+    {
+      "id": "people_happiness",
+      "number": 37,
+      "name": "People Happiness",
+      "category": "Social & Economy",
+      "tier": "C",
+      "defaultWeight": 1.2,
+      "description": "How happy people say they are — the Cantril ladder life-evaluation score (0 = worst possible life, 10 = best possible life), averaged over three years per country. Higher scores mean happier populations.",
+      "sources": [
+        { "name": "World Happiness Report 2026", "url": "https://worldhappiness.report/" },
+        { "name": "Gallup World Poll (Cantril ladder)", "url": "https://news.gallup.com/poll/122453/understanding-gallup-uses-cantril-scale.aspx" }
+      ]
     }
   ]
 }

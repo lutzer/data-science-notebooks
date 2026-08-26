@@ -198,16 +198,35 @@ Sub-national **Education Index** from **[Global Data Lab](https://globaldatalab.
 - **Why not UNESCO UIS:** national-only, no sub-national resolution — worse on the exact axis (intra-country variation) that this metric was included to capture. Would only make sense as a fallback for countries GDL misses, and `weighted_score`'s per-cell renormalisation already tolerates those gaps cleanly.
 - **Coverage caveats:** GDL provides admin-1 splits for the US, India, Brazil, most of Europe, and much of LatAm; smaller countries and many African/Central-Asian states appear as national-total polygons only, i.e. flat inside their borders — matching the 🟡 Tier B classification (sub-national polygons but still polygon-flat within each region). A handful of micro-states outside GDL stay `NaN`.
 
-### 37 social_connection — weak spatial resolution, national only
+### 37 people_happiness 🔴
 
-Gallup World Poll has social-support questions ("if in trouble, do you have relatives/friends to count on") for ~140 countries since 2005. Free 3-year averages are published via the World Happiness Report data page; full microdata requires institutional access (universities often have it via library subscriptions).
-Meta-Gallup State of Social Connections (2022) — free report with loneliness/social-support figures for a smaller set of countries.
-There's no subnational or gridded version of either — you'd be painting whole countries the same color.
+Self-reported life evaluation — the [Cantril ladder](https://news.gallup.com/poll/122453/understanding-gallup-uses-cantril-scale.aspx) score (respondents place themselves on an 11-rung ladder from `0` = "worst possible life" to `10` = "best possible life") from the Gallup World Poll, republished country-by-country as a rolling **3-year average** in the annual **[World Happiness Report](https://worldhappiness.report/)**. Country-level by construction: this is a survey mean, so cells are flat inside each border. 🔴 Tier C.
 
-### 38 worklife_balance — also national only, and narrower coverage
+- **Dataset:** [`WHR26_Data_Figure_2.1.xlsx`](https://files.worldhappiness.report/WHR26_Data_Figure_2.1.xlsx) — one row per `(Country name, Year)` from 2011–2025, ~165 countries. We read the `Life evaluation (3-year average)` column, which is the **raw** Cantril mean on `[0, 10]` — unlike the sibling `Explained by: <dimension>` columns, which are regression-decomposition contributions in "happiness units". WHR 2026 uses the 2023–2025 pooling window.
+- **Method:** take the latest available year per country, map WHR names to Natural Earth 50m admin_0 ISO3 with a static alias table (WHR uses e.g. "Türkiye", "Republic of Korea", "State of Palestine", "Viet Nam" and NE abbreviates "S. Sudan", "Central African Rep."), then rasterise via `load_country_mask` — same pattern as `34_human_freedom` and `35_corruption`. Higher = happier already matches the atlas convention, so **no sign inversion**. Ocean masked via `is_land`.
+- **Coverage:** 164 of 167 WHR countries land on the Natural Earth mask (~93% of atlas land cells). North Cyprus, Kosovo, and Somaliland are dropped because Natural Earth 50m admin_0 has no polygon for them; several Pacific/Caribbean/Gulf micro-states are not in WHR at all. `weighted_score` renormalises per-cell weights across the layers that *do* have a value so those gaps neither penalise nor discard the cell.
+- **Why not finer-grained:** no sub-national global life-evaluation dataset exists. The [**Human Flourishing Geographic Index (HFGI)**](https://arxiv.org/pdf/2511.10542) offers happiness / life-satisfaction indicators at US county/state level (inferred from 2.6 B geo-referenced tweets) but is US-only; **OECD Regional Well-Being** publishes life-satisfaction at TL2/TL3 for ~40 OECD + partner countries; **ESS** covers ~30 European countries at NUTS-1/NUTS-2; **WVS Wave 7** has `A008`/`A170` items for ~90 countries but is sub-nationally representative for only a handful of large countries; **GDL SHDI** has no life-satisfaction sub-index. All of these would only sharpen the corner of the map that is already best-served — see the intro to `37_people_happiness.ipynb` for the full comparison.
 
-OECD Better Life Index has a "Work-Life Balance" dimension (long working hours %, leisure time) but only covers ~40 OECD + partner countries — most of the world would be blank.
-For broader country coverage as a proxy, ILO working-hours statistics (average weekly hours, % working >48h) cover more countries and could substitute or supplement.
+### 38 working_hours
+
+For "average hours worked, lower is better," here's the exact indicator to pull:
+
+Recommended layering for your index
+Primary: ILOEST modelled estimates — mean weekly hours actually worked, ~189 countries, annual. This becomes your default working-hours signal everywhere.
+Optional refinement: OECD Better Life Index "Work-Life Balance" dimension — for the ~40 OECD/partner countries where it exists, its long-hours-% and leisure-time components are richer than a single hours number. You could blend it in as a weighted override in those countries, similar to how many of these livability projects use higher-fidelity regional data where available and fall back to a coarser global proxy elsewhere.
+Raw COND excessive-hours indicator (% working >48h/week) as a secondary metric if you want two work-life inputs instead of one (e.g., "average hours" for typical burden, "% excessive" for tail-risk of overwork culture).
+
+The indicator
+
+Mean weekly hours actually worked per employed person, from the ILOEST (ILO Modelled Estimates) database — this is the modelled/imputed version with ~189-country coverage, as opposed to the raw COND survey series which has big gaps.
+
+Indicator code: HOW_TEMP_SEX_ECO_NB is the raw COND breakdown (by sex/economic activity); the ILOEST modelled aggregate series is generally labeled HOW_XEES_SEX_NB or similar total-hours modelled series depending on vintage — the exact code can shift slightly between ILOSTAT catalogue updates, so confirm it live rather than trusting a hardcoded string (see below).
+Database: ILO Modelled Estimates (ILOEST)
+Unit: hours/week, total (not split by sex — use the "Total" sex breakdown to get one number per country)
+Frequency: Annual
+How to get the exact current code + data
+
+Since indicator codes occasionally get revised, the safest approach is to hit the ILOSTAT bulk download catalogue directly and grep for it, rather than hardcoding a code that might be stale:
 
 ---
 

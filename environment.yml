@@ -19,4 +19,5 @@ dependencies:
   - dbfread
   - pyarrow
   - dash
+  - openpyxl
 prefix: /opt/homebrew/Caskroom/miniconda/base/envs/data_science
