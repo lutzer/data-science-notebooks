@@ -188,11 +188,15 @@ How much political corruption is present in the society living in that grid cell
 - **Coverage caveats:** V-Dem covers ~180 countries; small Pacific / Caribbean / Gulf states (Brunei, Belize, Bahamas, Micronesia, most SIDS) are absent and stay `NaN` — `weighted_score`'s per-cell weight renormalization tolerates this. Country-level — flat inside each country border by construction, 🔴 Tier C.
 - **Not used:** Transparency International CPI, World Bank WGI Control of Corruption (`CC.EST`), ICRG Political Risk Services. All would give broadly the same country ranking; the first two are documented above, ICRG is paywalled.
 
-### 36 education — good news, decent resolution
+### 36 education 🟡
 
-Global Data Lab Subnational HDI / Education Index (globaldatalab.org/shdi) — free, downloadable, covers ~1,700 admin-2 regions in 161 countries, based on mean + expected years of schooling. This is the best option because it's sub-national, not just national.
-Kummu et al. gridded HDI/GDP dataset — an actual 5 arc-minute (~9km) raster of HDI (education is one of its three components), covering 1990–2015. This one you could genuinely resample onto your 0.5° grid without a polygon-fill step.
-UNESCO UIS also has literacy/enrollment by country if you want a simpler national-only fallback.
+Sub-national **Education Index** from **[Global Data Lab](https://globaldatalab.org/shdi/) Subnational HDI database v8.3** — a `[0, 1]` composite of mean and expected years of schooling, published for ~1 800 first- and second-level administrative regions across ~180 countries.
+
+- **Dataset:** `Subnational HDI Data v8.3.csv` + `GDL Shapefiles V6.5.zip`, both fetched from the **[Zenodo redistribution](https://zenodo.org/records/17467221)** of Smits & Permanyer (Sept 2025). GDL's own download portal requires a free account; Zenodo hosts the same v8.3 payload openly. The current GDL top-level release is v10.2 but only v8.3 is on the public mirror — swap the URL when a newer mirror appears.
+- **Method:** take the latest available year of `edindex` per `GDLCODE`, join onto GDL polygons by `gdlcode` (case-normalised), drop polygons without a value, and rasterise via `dominant_region_mask` onto the shared 0.5° grid — same fractional-coverage helper `03_region_mask.ipynb` uses for Natural Earth countries, chunked at 300 polygons per call so peak memory stays bounded with ~7× the geometry. Values are already `[0, 1]` with higher = better, so **no sign inversion**. Ocean is masked via `is_land` from `grid.nc`.
+- **Why not Kummu et al.:** the gridded HDI/GDP raster is genuinely gridded (~9 km) and needs no polygon step, but it stops in 2015 and bundles education inside the composite HDI rather than exposing it. GDL v8.3 is a decade fresher and isolates the education dimension directly.
+- **Why not UNESCO UIS:** national-only, no sub-national resolution — worse on the exact axis (intra-country variation) that this metric was included to capture. Would only make sense as a fallback for countries GDL misses, and `weighted_score`'s per-cell renormalisation already tolerates those gaps cleanly.
+- **Coverage caveats:** GDL provides admin-1 splits for the US, India, Brazil, most of Europe, and much of LatAm; smaller countries and many African/Central-Asian states appear as national-total polygons only, i.e. flat inside their borders — matching the 🟡 Tier B classification (sub-national polygons but still polygon-flat within each region). A handful of micro-states outside GDL stay `NaN`.
 
 ### 37 social_connection — weak spatial resolution, national only
 

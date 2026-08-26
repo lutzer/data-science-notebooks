@@ -54,6 +54,7 @@ At-a-glance list of sources currently wired up. See `DATASETS.md` for methodolog
 | 33 | `crime_rate` | World Bank `VC.IHR.PSRC.P5` (UNODC homicides) + Numbeo Crime Index city overlay |
 | 34 | `human_freedom` | V-Dem `v2x_libdem` (via `vdemdata` RData) + ACLED "violence against civilians" overlay |
 | 35 | `corruption` | V-Dem `v2x_corr` (reuses the same `vdemdata` cache as 34) |
+| 36 | `education` | GDL Subnational HDI v8.3 (Education Index) + GDL Shapefiles v6.5, via Zenodo mirror |
 
 ### Shared boundaries
 - Natural Earth 50m admin_0 polygons (via `regionmask`) — used to rasterize every country-level layer (19, 33, 34, 35, and the ThinkHazard side of 18).
