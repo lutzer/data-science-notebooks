@@ -249,6 +249,19 @@
       "sources": [
         { "name": "V-Dem Political Corruption Index", "url": "https://v-dem.net/" }
       ]
+    },
+    {
+      "id": "education",
+      "number": 36,
+      "name": "Education",
+      "category": "Social & Economy",
+      "tier": "B",
+      "defaultWeight": 1.0,
+      "description": "How educated the local population is, based on mean and expected years of schooling. Higher scores mean better education.",
+      "sources": [
+        { "name": "Global Data Lab Subnational HDI v8.3", "url": "https://globaldatalab.org/shdi/" },
+        { "name": "Zenodo mirror (Smits & Permanyer 2025)", "url": "https://zenodo.org/records/17467221" }
+      ]
     }
   ]
 }
