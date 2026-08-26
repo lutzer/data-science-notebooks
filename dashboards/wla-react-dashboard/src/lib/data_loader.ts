@@ -5,7 +5,6 @@ import {
   parquetSchema,
 } from 'hyparquet';
 import type { AsyncBuffer, ParquetType } from 'hyparquet';
-import { transformCoordinates } from './geometry';
 
 export interface WlaDataMatrix {
   lat: Float32Array;

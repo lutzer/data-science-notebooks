@@ -1,12 +1,12 @@
 import { DeckGL } from '@deck.gl/react';
 import { LinearInterpolator, OrthographicView, type OrthographicViewState } from '@deck.gl/core';
-import { GeoJsonLayer, PolygonLayer } from '@deck.gl/layers';
-import type { BBox, FeatureCollection, Position } from 'geojson';
+import { GeoJsonLayer } from '@deck.gl/layers';
+import type { BBox, FeatureCollection } from 'geojson';
 import { reprojectGeojson, transformCoordinates } from '../lib/geometry';
 import { useEffect, useState } from 'react';
 import bbox from '@turf/bbox';
 import { loadCells, loadCountries } from '../lib/data_loader';
-import { scaleSequential, scaleSequentialSqrt } from 'd3-scale';
+import { scaleSequentialSqrt } from 'd3-scale';
 import { interpolateViridis } from 'd3-scale-chromatic'; // npm install d3-scale-chromatic
 import { color as d3color } from 'd3-color'; // npm install d3-color
 import { Flex, Spinner, Text } from '@radix-ui/themes';

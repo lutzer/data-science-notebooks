@@ -1,4 +1,3 @@
-import type { Int } from 'apache-arrow';
 import { geoEqualEarth } from 'd3-geo';
 import type {
   Feature,
