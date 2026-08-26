@@ -91,3 +91,6 @@ Then open notebooks in numeric order or run all notebooks by executing `00_main.
 * add some food/gastronomy metric
 * add some metric for public transport / public infratructure / sports infrasturcture, etc
 * add some metric for income tax
+* somehow the grid cell with -23.750°, -70.750° doesnt get any of the data that is mapped via the region
+    file. why is thas? it should belong to chile. can you plot all the cells that arent mapped by a region
+  the region file?
