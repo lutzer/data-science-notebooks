@@ -1,10 +1,17 @@
-# Conda + Jupyter Notebook Boilerplate
+# World Livable Atlas
 
-A minimal starter for Jupyter notebook projects using **conda** for dependency management, pinned to **Python 3.12.10**.
+*This project explores our planet in respect of the most livable places. It divides the planet in cells of 0.5 ° latitude and longitude. At the equator a cell spans roughly 56km x 56km. The grid gets denser to the poles: at 60° latitude its size is 56 km x 28 km. Each grid cell is scored by a number of different metrices, that are weighted by the sliders below. Some of the parameters require you to pick a personal preference, such as temperature. At the end of this survey you might find the perfect place for you to live.*
 
-Holds the anaylsis Project [World Livable atlas](notebooks/world-livable-atlas/README.md) and the [WLA Dashboard](dashboards/wla-react-dashboard/README.md)
+See the atlas here: [World Livable Atlas](https://lutzer.github.io/world-livable-atlas/)
 
-## Prerequisites
+## Project Documentation:
+
+* Analysis Notebooks: [World Livable atlas](notebooks/world-livable-atlas/README.md) 
+* Dashboard App [WLA Dashboard](dashboards/wla-react-dashboard/README.md)
+
+## Development
+
+### Prerequisites
 
 Install one of the following (either works):
 
@@ -22,7 +29,7 @@ Verify the install:
 conda --version
 ```
 
-## 1. Create the environment
+### 1. Create the environment
 
 
 **macOS / Linux:**
@@ -39,7 +46,7 @@ conda env create -n data_science -f environment.yml
 
 This installs Python 3.12.10, JupyterLab, and the libraries listed in `environment.yml`.
 
-## 2. Activate the environment
+### 2. Activate the environment
 
 **macOS / Linux:**
 
@@ -55,7 +62,7 @@ conda activate data_science
 
 Your shell prompt should now show the env path.
 
-## 3. Launch Jupyter
+### 3. Launch Jupyter
 
 ```sh
 jupyter lab
