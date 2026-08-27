@@ -48,6 +48,14 @@ export function ParameterBox({
                         onCheckedChange={(c) => onCheckedChange(c === true)}
                     />
                     {parameter.descriptor.name}
+                    {parameter.descriptor.countryLevel && (
+                        <div
+                            className="wla-field-country"
+                            title="This metric uses country-level data — values are largely flat inside country borders and don't reflect intra-country variation."
+                        >
+                            country level
+                        </div>
+                    )}
                 </Text>
                 <span className="wla-field-val">{parameter.weight.toFixed(1)}</span>
             </div>

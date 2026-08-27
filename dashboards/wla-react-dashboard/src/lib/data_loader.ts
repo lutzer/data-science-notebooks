@@ -33,6 +33,7 @@ export interface DatasetDiscriptor {
   sources?: DatasetSource[]
   defaultVariant? : string
   variants : { key: string } | undefined
+  countryLevel?: boolean
 }
 
 export interface WlaParameter {
