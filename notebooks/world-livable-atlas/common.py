@@ -373,18 +373,17 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
 # wilderness is a pure upper bound (empty cells still score 1), urban a pure
 # lower bound.
 TEMP_PROFILES = {
-    'Icy (5°C ±8)':           (0.0, 8.0),
-    'Cool (15°C ±8)':         (15.0, 8.0),
-    'Temperate (20°C ±10)':   (20.0, 10.0),
-    'Warm (25°C ±8)':         (25.0, 8.0),
-    'Tropical (27°C ±5)':     (27.0, 5.0),
+    'Cold Winters (-5°C ±20)': (-5.0, 20.0),
+    'Cool Seasonal (8°C ±15)':         (8.0, 15.0),
+    'Mediteranian (15°C ±15)':   (15.0, 15.0),
+    'Hot (25°C ±15)':         (25.0, 15.0),
+    'Tropical (25°C ±8)':         (25.0, 8.0),
 }
 
 PRECIP_PROFILES = {
-    'Arid (20mm ±20)':       (20.0, 20.0),
-    'Balanced (80mm ±60)':   (80.0, 60.0),
-    'Wet (150mm ±60)':       (150.0, 60.0),
-    'Very wet (250mm ±80)':  (250.0, 80.0),
+    'Dry (20mm ±20)':      (20.0, 20.0),
+    'Balanced (80mm ±60)': (80.0, 60.0),
+    'Wet (200mm ±100)':    (200.0, 100.0),
 }
 
 DENSITY_PROFILES = {

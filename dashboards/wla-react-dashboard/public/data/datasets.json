@@ -51,11 +51,11 @@
       ],
       "defaultVariant" : "p3",
       "variants": {
-        "p1" : "Icy (5°C ±8)",
-        "p2" : "Cool (15°C ±8)",
-        "p3" : "Temperate (20°C ±10)",
-        "p4" : "Warm (25°C ±8)",
-        "p5" : "Tropical (27°C ±5)"
+        "p1" : "Cold Winters (-5°C ±20)",
+        "p2" : "Cool Seasonal (8°C ±15)",
+        "p3" : "Mediteranian (15°C ±15)",
+        "p4" : "Hot (25°C ±15)",
+        "p5" : "Tropical (25°C ±8)"
       }
     },
     {
@@ -75,7 +75,7 @@
     {
       "id": "precipitation_balance",
       "number": 16,
-      "name": "Precipitation Balance",
+      "name": "Rainfall",
       "category": "Environment",
       "tier": "B",
       "defaultWeight": 0.2,
@@ -86,10 +86,9 @@
       ],
       "defaultVariant" : "p2",
       "variants": {
-        "p1": "Arid (20mm ±20)",
+        "p1": "Dry (20mm ±20)",
         "p2": "Balanced (80mm ±60)",
-        "p3": "Wet (150mm ±60)",
-        "p4": "Very wet (250mm ±80)"
+        "p3": "Wet (200mm ±100)"
       }
     },
     {
