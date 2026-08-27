@@ -87,3 +87,16 @@ export function computeWeightedScore(matrix: WlaDataMatrix, weights: number[]): 
     }
     return out;
 }
+
+/**
+ * Return the indices of cells with a finite score, sorted by score descending.
+ * Used as the paginated backing list for the table.
+ */
+export function sortedIndicesByScore(scores: Float32Array): number[] {
+    const indices: number[] = [];
+    for (let i = 0; i < scores.length; i++) {
+        if (!Number.isNaN(scores[i])) indices.push(i);
+    }
+    indices.sort((a, b) => scores[b] - scores[a]);
+    return indices;
+}

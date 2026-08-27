@@ -28,6 +28,7 @@ const BBOX_OFFSET = 10.0;
 export interface MapData {
   values: Float32Array<ArrayBufferLike>
   bounds: [number, number]
+  ranks: number[]
 }
 
 export interface DataCell {

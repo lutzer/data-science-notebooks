@@ -13,7 +13,7 @@ import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
 import { CellsTable } from './components/CellsTable';
 import "@radix-ui/themes/styles.css";
-import { computeWeightedScore, constructWeightVectorFromParamaters } from './lib/utils';
+import { computeWeightedScore, constructWeightVectorFromParamaters, sortedIndicesByScore } from './lib/utils';
 
 const STORAGE_KEY = 'wla-parameters';
 
@@ -72,6 +72,7 @@ function App() {
     if (data !== null && parameters.length > 0) {
       const weights = constructWeightVectorFromParamaters(parameters, data.columns);
       const scores = computeWeightedScore(data, weights);
+      const ranks = sortedIndicesByScore(scores);
 
       const n = scores.length;
       let min = scores[0];
@@ -82,7 +83,7 @@ function App() {
         else if (v > max) max = v;
       }
 
-      setMapData({ values: scores, bounds: [min, max] });
+      setMapData({ values: scores, bounds: [min, max], ranks: ranks });
     }
   }, [parameters, data]);
 
@@ -179,6 +180,7 @@ function App() {
                   <CellInfoCard
                     data={data}
                     parameters={parameters}
+                    rank={mapData.ranks.findIndex((v) => v == selectedCellInfoIndex)}
                     index={selectedCellInfoIndex}
                     countryNames={countryNames}
                     onClose={() => setSelectedCellInfoIndex(null)}

@@ -31,9 +31,10 @@ export function Bar({ score, distribution, scoreColor, distributionColor }: {
  * of the dark map frame using the paper palette so it reads clearly against
  * the ink background.
  */
-export function CellInfoCard({ data, parameters, index, countryNames, onClose }: {
+export function CellInfoCard({ data, parameters, rank, index, countryNames, onClose }: {
     data: WlaDataMatrix,
     parameters: WlaParameter[],
+    rank: number,
     index: number,
     countryNames: Record<string, string>,
     onClose: () => void,
@@ -112,6 +113,9 @@ export function CellInfoCard({ data, parameters, index, countryNames, onClose }:
             <div style={{ padding: '12px 16px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
                     <ScoreCircle size={80} score={score} />
+                </div>
+                 <div style={{ fontSize: 12.5 }}>
+                    <strong>Rank:</strong> {rank}
                 </div>
                 <div style={{ fontSize: 12.5 }}>
                     <strong>Country:</strong> {country}

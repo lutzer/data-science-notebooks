@@ -8,18 +8,7 @@ import { TriangleRightIcon, TriangleDownIcon } from "@radix-ui/react-icons";
 import { ScoreCircle } from "./ScoreCircle";
 import { Button, Flex, IconButton, Table, Text, TextField } from "@radix-ui/themes";
 
-/**
- * Return the indices of cells with a finite score, sorted by score descending.
- * Used as the paginated backing list for the table.
- */
-function sortedIndicesByScore(scores: Float32Array): number[] {
-    const indices: number[] = [];
-    for (let i = 0; i < scores.length; i++) {
-        if (!Number.isNaN(scores[i])) indices.push(i);
-    }
-    indices.sort((a, b) => scores[b] - scores[a]);
-    return indices;
-}
+
 
 /**
  * Weighted score-component breakdown for a single cell — mirrors the
@@ -215,17 +204,13 @@ export function CellsTable({
     pageSize?: number,
     onRowClick?: (index: number) => void,
 }) {
-    const sortedIndices = useMemo(
-        () => sortedIndicesByScore(mapData.values),
-        [mapData.values],
-    );
     const [page, setPage] = useState(0);
     const [expanded, setExpanded] = useState<number | null>(null);
 
-    const pageCount = Math.max(1, Math.ceil(sortedIndices.length / pageSize));
+    const pageCount = Math.max(1, Math.ceil(mapData.ranks.length / pageSize));
     const safePage = Math.min(page, pageCount - 1);
     const start = safePage * pageSize;
-    const pageIndices = sortedIndices.slice(start, start + pageSize);
+    const pageIndices = mapData.ranks.slice(start, start + pageSize);
 
     function toggleExpanded(idx: number) {
         setExpanded((prev) => (prev === idx ? null : idx));
@@ -313,9 +298,9 @@ export function CellsTable({
             </Table.Root>
             <Flex justify="between" align="center" gap="3" wrap="wrap" style={{ padding: '14px 10px 6px' }}>
                 <Text size="1" style={{ color: 'var(--text-on-paper-dim)' }}>
-                    {sortedIndices.length === 0
+                    {mapData.ranks.length === 0
                         ? "No scored cells"
-                        : `Showing ${start + 1}–${Math.min(start + pageSize, sortedIndices.length)} of ${sortedIndices.length}`}
+                        : `Showing ${start + 1}–${Math.min(start + pageSize, mapData.ranks.length)} of ${mapData.ranks.length}`}
                 </Text>
                 <Flex align="center" gap="2">
                     <Button
