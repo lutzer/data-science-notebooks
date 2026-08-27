@@ -7,7 +7,16 @@ import copy
 from pyproj import Transformer
 import pydeck as pdk
 import pandas as pd
+from matplotlib import colormaps
 from pathlib import Path
+
+VIRIDIS = colormaps["viridis"]
+
+def viridis_rgba(values):
+    """Map a 0-1 array of scalars to viridis [R, G, B, A] byte lists."""
+    clipped = np.clip(np.asarray(values, dtype=float), 0.0, 1.0)
+    rgba = (VIRIDIS(clipped) * 255).astype(int)
+    return rgba.tolist()
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -70,11 +79,11 @@ def reproject_geojson(geojson):
 geojson_projected = reproject_geojson(geojson)
 
 # load data
-data_file_path = BASE_DIR / ".." / ".." / "data" / "world-livable-atlas" / "processed" / "normalized_by_country.parquet"
+data_file_path = BASE_DIR / ".." / ".." / "data" / "world-livable-atlas" / "processed" / "dashboard_data.parquet"
 df = pd.read_parquet(data_file_path)
 
 def reproject_df_row(row):
-    x, y = transform_coordinates(row["lon"], row["lat"])
+    x, y = transform_coordinates(row["_lon"], row["_lat"])
     return pd.Series({
         'x': x,
         'y': y
@@ -82,11 +91,42 @@ def reproject_df_row(row):
 
 df[["x","y"]] = df.apply(reproject_df_row, axis=1)
 
-value_columns = [c for c in df.columns if c not in {"x", "y", "lon", "lat","country_code","continent"}]
-default_column = "sea_proximity"
+value_columns = [c for c in df.columns if c not in {"x", "y", "_lon", "_lat", "_country_code", "_continent", "_region_code", "_region_name"}]
+WEIGHTED_SCORE = "weighted_score"
+default_column = WEIGHTED_SCORE
 
-def build_deck(column, view):
-    points = df[["x", "y", column]].rename(columns={column: "value"}).dropna().to_dict("records")
+def compute_weighted_score(weights):
+    """Return a Series holding the weight-normalised sum of all value columns.
+
+    `weights` is a dict mapping column name -> weight (from the sliders). NaN
+    values in any column are skipped per-row: both the weighted sum and the
+    weight total are computed only across the columns that have a value for
+    that row, so missing metrics neither pull the score toward zero nor
+    inflate the denominator. Rows with no data at all yield NaN.
+    """
+    active = {c: w for c, w in weights.items() if w and c in df.columns}
+    if not active:
+        return pd.Series(np.nan, index=df.index)
+    values = df[list(active.keys())]
+    weight_series = pd.Series(active)
+    mask = values.notna()
+    weighted = values.mul(weight_series, axis=1).fillna(0).sum(axis=1)
+    total = mask.mul(weight_series, axis=1).sum(axis=1)
+    score = weighted.where(total > 0) / total.replace(0, np.nan)
+    lo, hi = score.min(), score.max()
+    if pd.isna(lo) or hi == lo:
+        return score
+    return (score - lo) / (hi - lo)
+
+def build_deck(column, view, weights=None):
+    if column == WEIGHTED_SCORE:
+        score = compute_weighted_score(weights or {})
+        frame = df[["x", "y"]].assign(value=score)
+    else:
+        frame = df[["x", "y", column]].rename(columns={column: "value"})
+    frame = frame.dropna()
+    frame["color"] = viridis_rgba(frame["value"].to_numpy())
+    points = frame.to_dict("records")
 
     # 3. Build the deck.gl layer spec.
     data_layers = [
@@ -106,7 +146,7 @@ def build_deck(column, view):
             "data": points,          # list of dicts, or a DataFrame-derived list
             "getPosition": "@@=[x, y]",  # note the string expression syntax
             "getRadius": 40,
-            "getFillColor": "@@=[value * 255, 0, 255 - value * 255, 255]",
+            "getFillColor": "@@=color",
             "getLineColor": [0, 0, 0],
             "filled": True,
             "stroked": False,
@@ -149,21 +189,25 @@ orthographic_view = pdk.View(
     controller=True,   # pan + zoom only, no rotation possible
 )
 
+initial_weights = {c: 1 for c in value_columns}
+
 deck_component = dash_deck.DeckGL(
-    build_deck(default_column, orthographic_view),
+    build_deck(default_column, orthographic_view, initial_weights),
     id="deck-gl",
     style={"width": "90%", "left": "5%", "height": "500px", "top": "200px", "border": "1px solid black"},
 )
+
+dropdown_options = [{"label": "Weighted score (sliders)", "value": WEIGHTED_SCORE}] + \
+    [{"label": c, "value": c} for c in value_columns]
 
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
     html.H1(children='World Livable Atlas', style={'textAlign': 'center'}),
-    html.P(id="output", children="text"),
     html.Div(
         dcc.Dropdown(
             id="column-dropdown",
-            options=[{"label": c, "value": c} for c in value_columns],
+            options=dropdown_options,
             value=default_column,
             clearable=False,
             style={"width": "300px", "margin": "10px auto"}
@@ -175,19 +219,13 @@ app.layout = html.Div([
 
 @app.callback(
     Output("deck-gl", "data"),
-    Input("column-dropdown", "value")
-)
-def update_column(selected):
-    return build_deck(selected, orthographic_view)
-
-@app.callback(
-    Output("output", "children"),
+    Input("column-dropdown", "value"),
     Input({"type": "column-slider", "index": ALL}, "value"),
+    Input({"type": "column-slider", "index": ALL}, "id"),
 )
-def on_any_slider_change(values):
-    # `values` is a list of all slider values, in the order they appear in the layout
-    # dash.callback_context tells you which one triggered it
-    return f"all values: {values}"
+def update_deck(selected, slider_values, slider_ids):
+    weights = {sid["index"]: v for sid, v in zip(slider_ids, slider_values)}
+    return build_deck(selected, orthographic_view, weights)
 
 if __name__ == "__main__":
     app.run(debug=True)

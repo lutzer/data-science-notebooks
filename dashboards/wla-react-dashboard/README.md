@@ -8,6 +8,6 @@ Run dev server with `npm install`then `npm run dev`.
 
 ## Deployment
 
-TODO
+via github actions or `npm run build`. APp gets build into the */dist* folder
 
 
