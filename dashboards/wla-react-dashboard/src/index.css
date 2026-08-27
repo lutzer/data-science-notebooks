@@ -658,10 +658,10 @@ button.rt-Button {
 
 .wla-footer {
   margin-top: 44px;
-  font-size: 11.5px;
+  font-size: 90%;
   color: var(--text-on-ink-dim);
   line-height: 1.7;
-  max-width: 720px;
+  text-align: center;
 }
 
 .wla-footer b {
