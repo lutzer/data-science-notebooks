@@ -49,28 +49,15 @@
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" }
       ],
-      "defaultVariant" : "p3",
+      "defaultVariant" : "p4",
       "variants": {
-        "p1" : "Cold Winters (-5°C ±20)",
-        "p2" : "Cool Seasonal (8°C ±15)",
-        "p3" : "Mediteranian (15°C ±15)",
-        "p4" : "Hot (25°C ±15)",
-        "p5" : "Tropical (25°C ±8)"
+        "p1" : "Polar (-15°C ±25)",
+        "p2" : "Cold Winters (-5°C ±20)",
+        "p3" : "Cool Seasonal (8°C ±15)",
+        "p4" : "Mediterranean (18°C ±12)",
+        "p5" : "Hot (25°C ±15)",
+        "p6" : "Tropical Steady (32°C ±5)"
       }
-    },
-    {
-      "id": "annual_greenness",
-      "number": 15,
-      "name": "Annual Greenness",
-      "category": "Environment",
-      "tier": "A",
-      "defaultWeight": 1.0,
-      "description": "How green and vegetated an area is across the year. Higher scores mean lusher landscapes.",
-      "sources": [
-        { "name": "MODIS MOD13Q1/A1 (NASA)", "url": "https://modis.gsfc.nasa.gov/data/dataprod/mod13.php" },
-        { "name": "Copernicus Global Land Service", "url": "https://land.copernicus.eu/global/" },
-        { "name": "Sentinel-2 via Google Earth Engine", "url": "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2" }
-      ]
     },
     {
       "id": "precipitation_balance",
@@ -90,6 +77,20 @@
         "p2": "Balanced (80mm ±60)",
         "p3": "Wet (200mm ±100)"
       }
+    },
+    {
+      "id": "annual_greenness",
+      "number": 15,
+      "name": "Annual Greenness",
+      "category": "Environment",
+      "tier": "A",
+      "defaultWeight": 1.0,
+      "description": "How green and vegetated an area is across the year. Higher scores mean lusher landscapes.",
+      "sources": [
+        { "name": "MODIS MOD13Q1/A1 (NASA)", "url": "https://modis.gsfc.nasa.gov/data/dataprod/mod13.php" },
+        { "name": "Copernicus Global Land Service", "url": "https://land.copernicus.eu/global/" },
+        { "name": "Sentinel-2 via Google Earth Engine", "url": "https://developers.google.com/earth-engine/datasets/catalog/sentinel-2" }
+      ]
     },
     {
       "id": "air_quality",

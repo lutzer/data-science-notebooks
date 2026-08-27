@@ -373,11 +373,12 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
 # wilderness is a pure upper bound (empty cells still score 1), urban a pure
 # lower bound.
 TEMP_PROFILES = {
-    'Cold Winters (-5°C ±20)':   (-5.0, 20.0),
-    'Cool Seasonal (8°C ±15)':    (8.0, 15.0),
-    'Mediterranean (18°C ±12)':  (18.0, 12.0),
-    'Hot (25°C ±15)':            (25.0, 15.0),
-    'Tropical (25°C ±8)':        (25.0,  8.0),
+    'Polar (-15°C ±25)':          (-15.0, 25.0),
+    'Cold Winters (-5°C ±20)':    ( -5.0, 20.0),
+    'Cool Seasonal (8°C ±15)':    (  8.0, 15.0),
+    'Mediterranean (18°C ±12)':   ( 18.0, 12.0),
+    'Hot (25°C ±15)':             ( 25.0, 15.0),
+    'Tropical Steady (32°C ±3)':  ( 32.0,  5.0),
 }
 
 PRECIP_PROFILES = {
@@ -444,7 +445,17 @@ def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
     Reads ``processed/_apparent_temp_monthly.nc`` (produced by
     ``14_temperature_pleasantness.ipynb``) and applies a per-month triangular
     comfort function around ``ideal_temp``. Annual pleasantness is the mean
-    across 12 months, in ``[0, 1]`` — higher is better.
+    across 12 months, and is multiplied by a triangular range-fit factor so
+    that only cells whose annual swing matches the swing implied by the
+    preset score high. This distinguishes climates that share an annual mean
+    but have very different seasonality — e.g. the Mediterranean cluster
+    (large swing) from tropical highlands like Nairobi or Bogotá (near-flat).
+
+    ``tolerance`` does double duty: it is the half-width of the per-month
+    comfort band *and* implies the "expected" annual swing of ``2·tolerance``
+    (the width of the same band). A cell whose actual swing equals
+    ``2·tolerance`` gets ``range_fit = 1``; a perfectly flat cell (swing 0)
+    or a very wide-swing cell (swing ≥ ``4·tolerance``) gets ``0``.
 
     Separated from the notebook so re-scoring with different preferences (an
     interactive UI, a Dash app, a parameter sweep) does not need the notebook
@@ -457,7 +468,8 @@ def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
     tolerance : float
         Half-width of the comfort band in °C. A month whose apparent
         temperature deviates by more than ``tolerance`` from ``ideal_temp``
-        contributes 0 to the score.
+        contributes 0 to the score. Also implies the expected annual swing
+        (``2·tolerance``) used by the range-fit factor.
     source : pathlib.Path or xarray.DataArray
         Path to the cached monthly-temperature NetCDF, or the DataArray
         itself (e.g. reconstructed from ``load_raw_scoring_inputs``).
@@ -471,7 +483,12 @@ def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
 
     at_monthly = source if isinstance(source, xr.DataArray) else xr.open_dataarray(source)
     comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
-    return comfort.mean("month")
+    base = comfort.mean("month")
+
+    expected_range = 2 * tolerance
+    actual_range = at_monthly.max("month") - at_monthly.min("month")
+    range_fit = (1 - np.abs(actual_range - expected_range) / expected_range).clip(0, 1)
+    return base * range_fit
 
 def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60.0):
     """Collapse cached monthly precipitation into a balance score.
