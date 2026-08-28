@@ -579,6 +579,24 @@ button.rt-Button {
   background: linear-gradient(90deg, var(--teal), var(--gold));
 }
 
+
+@media (max-width: 500px) {
+  .table-score-bar {
+    display: none;
+  }
+  .wla-cell-score {
+    min-width: auto;
+  }
+
+  .wla-coords {
+    display: none;
+  }
+
+  .wla-coords-header {
+    display: none;
+  }
+}
+
 .wla-region {
   font-weight: 600;
 }

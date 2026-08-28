@@ -235,7 +235,7 @@ export function CellsTable({
                         <Table.ColumnHeaderCell>Score</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Country</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Region</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Coordinates</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell className="wla-coords-header">Coordinates</Table.ColumnHeaderCell>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -275,7 +275,7 @@ export function CellsTable({
                                     <Table.Cell>
                                         <div className="wla-cell-score">
                                             <span className="num">{score.toFixed(3)}</span>
-                                            <div className="bar"><i style={{ width: `${Math.max(0, Math.min(1, score)) * 100}%` }} /></div>
+                                            <div className="bar table-score-bar"><i style={{ width: `${Math.max(0, Math.min(1, score)) * 100}%` }} /></div>
                                         </div>
                                     </Table.Cell>
                                     <Table.Cell className="wla-region" title={continent || undefined}>{country}</Table.Cell>
