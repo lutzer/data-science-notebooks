@@ -33,6 +33,8 @@ export interface MapData {
 
 export interface DataCell {
   index: number
+  x: number
+  y: number
 }
 
 export interface FocusRequest {
@@ -92,7 +94,7 @@ export function WorldMap({data, height, onCellClick, selectedIndex, isDatasetLoa
       pickable: onCellClick != null,
       onClick: onCellClick
         ? (info) => {
-            if (info.index >= 0) onCellClick({ index: info.index });
+            if (info.index >= 0) onCellClick({ index: info.index, x: info.x, y: info.y });
             return true;
           }
         : undefined,

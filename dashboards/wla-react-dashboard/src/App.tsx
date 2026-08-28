@@ -25,6 +25,7 @@ function App() {
   const [countryContinents, setCountryContinents] = useState<Record<string, string>>({});
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedCellInfoIndex, setSelectedCellInfoIndex] = useState<number | null>(null);
+  const [cellInfoAnchor, setCellInfoAnchor] = useState<{ x: number; y: number } | null>(null);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusKeyRef = useRef(0);
   const [hash, setHash] = useState(window.location.hash);
@@ -46,6 +47,7 @@ function App() {
     if (!data) return;
     setSelectedIndex(index);
     setSelectedCellInfoIndex(null);
+    setCellInfoAnchor(null);
     focusKeyRef.current += 1;
     setFocusRequest({ lat: data.lat[index], lon: data.lon[index], key: focusKeyRef.current });
   }
@@ -134,6 +136,7 @@ function App() {
   function handleOnCellClicked(cell: DataCell | null) {
     setSelectedIndex(cell ? cell.index : null)
     setSelectedCellInfoIndex(cell ? cell.index : null)
+    setCellInfoAnchor(cell ? { x: cell.x, y: cell.y } : null)
   }
 
   return (
@@ -193,7 +196,8 @@ function App() {
                     rank={mapData.ranks.findIndex((v) => v == selectedCellInfoIndex)}
                     index={selectedCellInfoIndex}
                     countryNames={countryNames}
-                    onClose={() => setSelectedCellInfoIndex(null)}
+                    anchor={cellInfoAnchor}
+                    onClose={() => { setSelectedCellInfoIndex(null); setCellInfoAnchor(null); }}
                   />
                 )}
                 <WorldMap

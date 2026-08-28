@@ -580,7 +580,7 @@ button.rt-Button {
 }
 
 
-@media (max-width: 500px) {
+@media (max-width: 620px) {
   .table-score-bar {
     display: none;
   }

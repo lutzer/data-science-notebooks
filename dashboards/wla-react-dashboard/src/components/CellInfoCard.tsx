@@ -1,9 +1,28 @@
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import type { WlaDataMatrix, WlaParameter } from "../lib/data_loader";
 import { columnFor } from "../lib/utils";
 import SatelliteMap from "./SatelliteMap";
 import { ScoreCircle } from "./ScoreCircle";
 import { IconButton } from "@radix-ui/themes";
 import { Cross1Icon } from "@radix-ui/react-icons";
+
+const CARD_WIDTH = 320;
+const ANCHOR_OFFSET = 12;
+const MOBILE_MAX_WIDTH = 640;
+
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(
+        typeof window !== 'undefined' && window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches,
+    );
+    useEffect(() => {
+        const mq = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
+        const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+        mq.addEventListener('change', listener);
+        return () => mq.removeEventListener('change', listener);
+    }, []);
+    return isMobile;
+}
 
 /**
  * Single horizontal bar with two semi-transparent fills overlaid on a shared
@@ -31,14 +50,16 @@ export function Bar({ score, distribution, scoreColor, distributionColor }: {
  * of the dark map frame using the paper palette so it reads clearly against
  * the ink background.
  */
-export function CellInfoCard({ data, parameters, rank, index, countryNames, onClose }: {
+export function CellInfoCard({ data, parameters, rank, index, countryNames, anchor, onClose }: {
     data: WlaDataMatrix,
     parameters: WlaParameter[],
     rank: number,
     index: number,
     countryNames: Record<string, string>,
+    anchor?: { x: number; y: number } | null,
     onClose: () => void,
 }) {
+    const isMobile = useIsMobile();
     const lat = data.lat[index];
     const lon = data.lon[index];
     const code = data.country[index];
@@ -78,13 +99,17 @@ export function CellInfoCard({ data, parameters, rank, index, countryNames, onCl
 
     const score = components.reduce((acc, curr) => acc + (Number.isNaN(curr.contribution) ? 0 : curr.contribution), 0);
 
+    const positionStyle: CSSProperties = anchor
+        ? isMobile
+            ? { left: '50%', top: anchor.y + ANCHOR_OFFSET, transform: 'translateX(-50%)' }
+            : { left: anchor.x - CARD_WIDTH / 2, top: anchor.y + ANCHOR_OFFSET }
+        : { top: 12, right: 12 };
+
     return (
         <div
             style={{
                 position: 'absolute',
-                top: 12,
-                right: 12,
-                width: 320,
+                width: CARD_WIDTH,
                 maxHeight: 'calc(100% - 24px)',
                 background: 'var(--paper)',
                 color: 'var(--text-on-paper)',
@@ -94,6 +119,7 @@ export function CellInfoCard({ data, parameters, rank, index, countryNames, onCl
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
+                ...positionStyle,
             }}
         >
             <div style={{ padding: '14px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(27,47,40,0.12)' }}>
