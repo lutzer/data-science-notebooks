@@ -8,37 +8,39 @@ import {
   loadWlaMatrix,
   type WlaParameter,
 } from './lib/data_loader';
-import { Button, Flex, Link, Theme, ScrollArea } from "@radix-ui/themes";
+import { Button, Flex, Link, Theme, ScrollArea, AlertDialog, Text, Code } from "@radix-ui/themes";
 import { ParameterBox } from './components/ParameterBox';
 import { CellInfoCard } from './components/CellInfoCard';
 import { CellsTable } from './components/CellsTable';
 import "@radix-ui/themes/styles.css";
-import { computeWeightedScore, constructWeightVectorFromParamaters, sortedIndicesByScore } from './lib/utils';
-
-const STORAGE_KEY = 'wla-parameters';
-
-type SavedParam = { weight: number; checked: boolean; variant: string | undefined };
-
-function loadSavedParams(): Record<string, SavedParam> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) as Record<string, SavedParam> : {};
-  } catch {
-    return {};
-  }
-}
+import { computeWeightedScore, constructWeightVectorFromParamaters, decodeObjectFromHash, encodeObjectToHash, loadSavedParams, sortedIndicesByScore, storeParams, type SavedParam } from './lib/utils';
+import { AtlasLink } from './components/AtlasLink';
 
 function App() {
   const [data, setData] = useState<WlaDataMatrix | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [parameters, setParameters] = useState<WlaParameter[]>([])
-  const [mapData, setMapData] = useState<MapData>({ values: new Float32Array(), bounds: [0,0]})
+  const [mapData, setMapData] = useState<MapData>({ values: new Float32Array(), bounds: [0,0], ranks: []})
   const [countryNames, setCountryNames] = useState<Record<string, string>>({});
   const [countryContinents, setCountryContinents] = useState<Record<string, string>>({});
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedCellInfoIndex, setSelectedCellInfoIndex] = useState<number | null>(null);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const focusKeyRef = useRef(0);
+  const [hash, setHash] = useState(window.location.hash);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
+  // const hashParams = new URLSearchParams(window.location.hash.slice(1)).toString();
 
   function focusOnCell(index: number) {
     if (!data) return;
@@ -52,16 +54,17 @@ function App() {
     Promise.all([loadWlaMatrix(), loadDatasetDescriptors(), loadCountryNames(), loadCountryContinents()])
       .then(([matrix, descriptors, names, continents]) => {
         setData(matrix)
-        const saved = loadSavedParams();
+        let savedParams = decodeObjectFromHash(hash && hash.slice(1));
         setParameters(descriptors.map((d) => {
-          const s = saved[d.id];
+          let saved = savedParams && savedParams[d.id]
           return {
             descriptor: d,
-            weight: s?.weight ?? d.defaultWeight,
-            checked: s?.checked ?? true,
-            variant: s?.variant,
+            weight: saved?.weight || Number((Math.random() * 1.9 + 0.1).toFixed(1)),
+            checked: saved?.checked || true,
+            variant: saved?.variant || d.defaultVariant,
           };
         }));
+        // setParametersFromHash()
         setCountryNames(names);
         setCountryContinents(continents);
       })
@@ -88,13 +91,19 @@ function App() {
   }, [parameters, data]);
 
   useEffect(() => {
-    if (parameters.length === 0) return;
-    const toSave: Record<string, SavedParam> = {};
-    for (const p of parameters) {
-      toSave[p.descriptor.id] = { weight: p.weight, checked: p.checked, variant: p.variant };
+    let savedParams = decodeObjectFromHash(hash && hash.slice(1));
+    if (savedParams && parameters) {
+      setParameters(parameters.map((p) => {
+        let saved = savedParams && savedParams[p.descriptor.id]
+        return {...p, weight: saved.weight, checked: saved.checked, variant: saved.variant }
+      }));
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  }, [parameters]);
+  },[hash])
+
+  // useEffect(() => {
+  //   if (parameters.length === 0) return;
+  //     storeParams(parameters);
+  // }, [parameters]);
 
   function handleWeightChange(id: string, w: number) {
     setParameters(parameters.map((p) => p.descriptor.id === id ? { ...p, weight: w } : p));
@@ -118,7 +127,7 @@ function App() {
       const variant = variantKeys.length > 0
         ? variantKeys[Math.floor(Math.random() * variantKeys.length)]
         : p.variant;
-      return { ...p, weight: Math.random() * 1.9 + 0.1, checked: true, variant };
+      return { ...p, weight: Number((Math.random() * 1.9 + 0.1).toFixed(1)), checked: true, variant };
     }));
   }
 
@@ -168,6 +177,7 @@ function App() {
               ))}
               </Flex>
             </ScrollArea>
+            <AtlasLink parameters={parameters}/>
           </aside>
 
           <section className="wla-content">

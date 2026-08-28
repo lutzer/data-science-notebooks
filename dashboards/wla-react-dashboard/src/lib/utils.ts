@@ -100,3 +100,42 @@ export function sortedIndicesByScore(scores: Float32Array): number[] {
     indices.sort((a, b) => scores[b] - scores[a]);
     return indices;
 }
+
+
+const STORAGE_KEY = 'wla-parameters';
+
+export type SavedParam = { weight: number; checked: boolean; variant: string | undefined };
+
+export function loadSavedParams(): Record<string, SavedParam> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) as Record<string, SavedParam> : {};
+  } catch {
+    return {};
+  }
+}
+
+export function storeParams(parameters: WlaParameter[]) {
+    const toSave: Record<string, SavedParam> = {};
+    for (const p of parameters) {
+      toSave[p.descriptor.id] = { weight: p.weight, checked: p.checked, variant: p.variant };
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+}
+
+export function encodeObjectToHash(obj : Record<string, SavedParam>) {
+  const json = JSON.stringify(obj);
+  const b64 = btoa(unescape(encodeURIComponent(json))); // handles non-ASCII safely
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+export function decodeObjectFromHash(str: string) : Record<string, SavedParam> | undefined  {
+    try {
+        let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const json = decodeURIComponent(escape(atob(b64)));
+        return JSON.parse(json);
+    } catch (e) {
+        return undefined
+    }
+}
