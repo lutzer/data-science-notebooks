@@ -160,7 +160,7 @@ export function CellInfoCard({ data, parameters, rank, index, countryNames, anch
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginTop: 10, marginBottom: 6 }}>
                     Map
                 </div>
-                <div style={{ borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ borderRadius: 8, overflow: 'hidden', pointerEvents: "none" }}>
                     <SatelliteMap longitude={lon} latitude={lat} zoom={8} width={288} height={230} />
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-on-paper-dim)', marginTop: 14, marginBottom: 6 }}>
