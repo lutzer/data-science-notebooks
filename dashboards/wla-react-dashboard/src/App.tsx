@@ -135,9 +135,9 @@ function App() {
             World Liveable <em>Atlas</em>
           </h1>
           <p className="wla-lede">
-            This project explores our planet in respect of the most livable places.
-            It divides the planet in cells of <b>0.5 ° latitude and longitude</b>. At the equator a cell spans roughly 56km x 56km. The grid gets denser to the poles: at 60° latitude its size is 56 km x 28 km.
-            Each grid cell is scored by a number of different metrices, that are weighted by the sliders below.
+            This project explores our planet in respect of the most liveable places.
+            It divides the planet in cells of 0.5 ° latitude and longitude. At the equator a cell spans roughly 56km x 56km. The grid gets denser to the poles: at 60° latitude its size is 56 km x 28 km.
+            Each grid cell is scored by a number of different metrices, that are weighted by the sliders below to reflect your priorities.
             Some of the parameters require you to pick a personal preference, such as temperature, rainfall and population.
             At the end of this survey you might find the perfect place for you to live.
           </p>
