@@ -45,18 +45,18 @@
       "category": "Environment",
       "tier": "B",
       "defaultWeight": 1.5,
-      "description": "How comfortable the year-round temperature feels, accounting for humidity. Higher scores mean it is more in your selected range.",
+      "description": "How well the year-round climate matches a chosen region — temperature and humidity are scored independently, so hot-dry and hot-humid pick out different places. Higher scores mean the local climate is closer to your selected preset.",
       "sources": [
-        { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" }
+        { "name": "NASA POWER (T2M + RH2M monthly climatology 1991–2020)", "url": "https://power.larc.nasa.gov/" }
       ],
       "defaultVariant" : "p4",
       "variants": {
-        "p1" : "Polar (-15°C ±25)",
-        "p2" : "Cold Winters (-5°C ±20)",
-        "p3" : "Cool Seasonal (8°C ±15)",
-        "p4" : "Mediterranean (18°C ±12)",
-        "p5" : "Hot (25°C ±15)",
-        "p6" : "Tropical Steady (32°C ±5)"
+        "p1" : "Polar (-15°C ±25, RH 80% ±25)",
+        "p2" : "Cold Seasonal (-5°C ±20, RH 75% ±25)",
+        "p3" : "Mild Seasonal (10°C ±15, RH 70% ±25)",
+        "p4" : "Mediterranean (18°C ±12, RH 55% ±20)",
+        "p5" : "Hot Dry (27°C ±10, RH 25% ±15)",
+        "p6" : "Tropical Hot Humid (27°C ±5, RH 82% ±12)"
       }
     },
     {

@@ -372,13 +372,18 @@ def plot_map(da, ax=None, coastlines=True, title=None, **kwargs):
 # where ``None`` on either side of the range means unbounded on that side —
 # wilderness is a pure upper bound (empty cells still score 1), urban a pure
 # lower bound.
+# Each entry is ``(ideal_temp_C, temp_tolerance_C, ideal_rh_pct, rh_tolerance_pct)``.
+# Temperature and humidity contribute independently to the pleasantness score
+# (product), so a preset only rewards cells that match on both axes — this is
+# what separates "hot dry" (Cairo) from "tropical humid" (Singapore) despite
+# similar raw air temperatures.
 TEMP_PROFILES = {
-    'Polar (-15°C ±25)':          (-15.0, 25.0),
-    'Cold Winters (-5°C ±20)':    ( -5.0, 20.0),
-    'Cool Seasonal (8°C ±15)':    (  8.0, 15.0),
-    'Mediterranean (18°C ±12)':   ( 18.0, 12.0),
-    'Hot (25°C ±15)':             ( 25.0, 15.0),
-    'Tropical Steady (32°C ±3)':  ( 32.0,  5.0),
+    'Polar (-15°C ±25, RH 80% ±25)':          (-15.0, 25.0, 80.0, 25.0),
+    'Cold Seasonal (-5°C ±20, RH 75% ±25)':   ( -5.0, 20.0, 75.0, 25.0),
+    'Mild Seasonal (10°C ±15, RH 70% ±25)':   ( 10.0, 15.0, 70.0, 25.0),
+    'Mediterranean (18°C ±12, RH 55% ±20)':   ( 18.0, 12.0, 55.0, 20.0),
+    'Hot Dry (27°C ±10, RH 25% ±15)':         ( 27.0, 10.0, 25.0, 15.0),
+    'Tropical Hot Humid (27°C ±5, RH 82% ±12)': ( 27.0,  5.0, 82.0, 12.0),
 }
 
 PRECIP_PROFILES = {
@@ -414,9 +419,10 @@ def load_raw_scoring_inputs(path=None):
     Returns
     -------
     tuple of xarray.DataArray
-        ``(apparent_temp_monthly, precipitation_monthly, population_density)``
-        — the first two on ``(lat, lon, month)``, the last on ``(lat, lon)``,
-        suitable for passing to the ``compute_*`` helpers below.
+        ``(temperature_monthly, humidity_monthly, precipitation_monthly,
+        population_density)`` — the first three on ``(lat, lon, month)``, the
+        last on ``(lat, lon)``, suitable for passing to the ``compute_*``
+        helpers below.
     """
     import pandas as pd
 
@@ -433,29 +439,47 @@ def load_raw_scoring_inputs(path=None):
         da = wide.stack().to_xarray().rename(prefix)
         return da.reindex(lat=grid.lat, lon=grid.lon)
 
-    temp = _monthly("apparent_temp")
+    temp = _monthly("temperature")
+    humidity = _monthly("humidity")
     precip = _monthly("precipitation")
     density = df["population_density"].to_xarray().reindex(lat=grid.lat, lon=grid.lon)
-    return temp, precip, density
+    return temp, humidity, precip, density
 
 
-def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
-    """Collapse cached monthly apparent temperature into a pleasantness score.
+def compute_temperature_pleasantness(
+    temp_source,
+    humidity_source,
+    ideal_temp=18.0,
+    temp_tolerance=12.0,
+    ideal_rh=60.0,
+    rh_tolerance=25.0,
+):
+    """Combine monthly temperature + humidity into a climate pleasantness score.
 
-    Reads ``processed/_apparent_temp_monthly.nc`` (produced by
-    ``14_temperature_pleasantness.ipynb``) and applies a per-month triangular
-    comfort function around ``ideal_temp``. Annual pleasantness is the mean
-    across 12 months, and is multiplied by a triangular range-fit factor so
-    that only cells whose annual swing matches the swing implied by the
-    preset score high. This distinguishes climates that share an annual mean
-    but have very different seasonality — e.g. the Mediterranean cluster
-    (large swing) from tropical highlands like Nairobi or Bogotá (near-flat).
+    Reads ``processed/_temperature_monthly.nc`` and
+    ``processed/_humidity_monthly.nc`` (produced by
+    ``14_temperature_pleasantness.ipynb``) and applies two independent
+    per-month Laplace comfort functions — one on raw air temperature
+    around ``ideal_temp``, one on relative humidity around ``ideal_rh``.
+    The two annual-mean fits are multiplied, so a cell only scores high
+    when *both* axes match the preset. This is what lets a "hot dry"
+    preset (Cairo) and a "tropical humid" preset (Singapore) point at
+    completely different regions even though their air temperatures are
+    similar.
 
-    ``tolerance`` does double duty: it is the half-width of the per-month
-    comfort band *and* implies the "expected" annual swing of ``2·tolerance``
-    (the width of the same band). A cell whose actual swing equals
-    ``2·tolerance`` gets ``range_fit = 1``; a perfectly flat cell (swing 0)
-    or a very wide-swing cell (swing ≥ ``4·tolerance``) gets ``0``.
+    A Laplace range-fit factor is applied to the temperature axis only:
+    cells whose annual temperature swing equals ``2·temp_tolerance`` score
+    ``range_fit = 1``, near-flat cells (tropical highlands like Nairobi)
+    or very wide-swing cells get pulled toward 0. Humidity has no range
+    check — a stable-humid climate is not penalised for being stable.
+
+    All three fits use ``score = exp(-|x - ideal| / tolerance)`` — a
+    smooth monotonic falloff with fat tails, so even narrow presets
+    (Tropical, Hot Dry) produce a visible gradient over the whole world
+    instead of a wide near-zero plateau. No cell hits an exact zero from
+    a hard cutoff. The ``tolerance`` parameters keep their meaning as the
+    distance at which the fit drops to ``exp(-1) ≈ 0.37``; at 2·tolerance
+    it's ``0.14``, at 3·tolerance ``0.05``, at 5·tolerance ``0.007``.
 
     Separated from the notebook so re-scoring with different preferences (an
     interactive UI, a Dash app, a parameter sweep) does not need the notebook
@@ -463,16 +487,21 @@ def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
 
     Parameters
     ----------
-    ideal_temp : float
-        Preferred apparent temperature in °C.
-    tolerance : float
-        Half-width of the comfort band in °C. A month whose apparent
-        temperature deviates by more than ``tolerance`` from ``ideal_temp``
-        contributes 0 to the score. Also implies the expected annual swing
-        (``2·tolerance``) used by the range-fit factor.
-    source : pathlib.Path or xarray.DataArray
-        Path to the cached monthly-temperature NetCDF, or the DataArray
+    temp_source : pathlib.Path or xarray.DataArray
+        Path to the cached monthly air-temperature NetCDF, or the DataArray
         itself (e.g. reconstructed from ``load_raw_scoring_inputs``).
+    humidity_source : pathlib.Path or xarray.DataArray
+        Same, for monthly relative humidity (percent).
+    ideal_temp : float
+        Preferred air temperature in °C.
+    temp_tolerance : float
+        Characteristic width of the temperature comfort band in °C.
+        Also implies the expected annual swing (``2·temp_tolerance``)
+        used by the range-fit factor.
+    ideal_rh : float
+        Preferred relative humidity in percent.
+    rh_tolerance : float
+        Characteristic width of the humidity comfort band in percent.
 
     Returns
     -------
@@ -481,14 +510,21 @@ def compute_temperature_pleasantness(source, ideal_temp=20.0, tolerance=10.0):
     """
     import numpy as np
 
-    at_monthly = source if isinstance(source, xr.DataArray) else xr.open_dataarray(source)
-    comfort = (1 - np.abs(at_monthly - ideal_temp) / tolerance).clip(0, 1)
-    base = comfort.mean("month")
+    t_monthly = temp_source if isinstance(temp_source, xr.DataArray) else xr.open_dataarray(temp_source)
+    rh_monthly = humidity_source if isinstance(humidity_source, xr.DataArray) else xr.open_dataarray(humidity_source)
 
-    expected_range = 2 * tolerance
-    actual_range = at_monthly.max("month") - at_monthly.min("month")
-    range_fit = (1 - np.abs(actual_range - expected_range) / expected_range).clip(0, 1)
-    return base * range_fit
+    t_comfort = np.exp(-np.abs(t_monthly - ideal_temp) / temp_tolerance)
+    t_base = t_comfort.mean("month")
+
+    expected_range = 2 * temp_tolerance
+    actual_range = t_monthly.max("month") - t_monthly.min("month")
+    range_fit = np.exp(-np.abs(actual_range - expected_range) / expected_range)
+    temp_fit = t_base * range_fit
+
+    rh_comfort = np.exp(-np.abs(rh_monthly - ideal_rh) / rh_tolerance)
+    humidity_fit = rh_comfort.mean("month")
+
+    return temp_fit * humidity_fit
 
 def compute_precipitation_balance(source, ideal_monthly_mm=80.0, tolerance_mm=60.0):
     """Collapse cached monthly precipitation into a balance score.
