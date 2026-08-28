@@ -222,7 +222,7 @@ function App() {
         </div>
 
         <footer className="wla-footer">
-          Created 2026 by Lutz Reiter | <Link href="https://github.com/lutzer/world-liveable-atlas/">View Github</Link> | <Link href="https://github.com/lutzer/world-liveable-atlas/blob/main/notebooks/world-livable-atlas/91_distribution_analyses.ipynb">Read Data Discussion</Link>
+          Created 2026 by Lutz Reiter | <Link href="https://github.com/lutzer/world-liveable-atlas/">View on Github</Link> | <Link href="https://github.com/lutzer/world-liveable-atlas/blob/main/notebooks/world-livable-atlas/91_distribution_analyses.ipynb">Read Data Discussion</Link>
         </footer>
       </div>
     </Theme>
