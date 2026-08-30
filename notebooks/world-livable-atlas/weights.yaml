@@ -2,6 +2,14 @@
 # normalizes them so they sum to 1. Set a weight to 0 to exclude a variable.
 # Variables where lower is better (cost, crime) should be inverted in their
 # source notebook so that higher raw values always mean "better".
+#
+# The socio-economic block is deliberately down-weighted because several of
+# its variables measure closely related constructs (V-Dem corruption vs
+# V-Dem liberal democracy; WHR happiness re-encodes income + freedom +
+# social support; income / working_hours / healthcare / education /
+# internet all track OECD membership). Equal 1.0 weights let that shared
+# signal dominate the composite; the reduced weights below give it a fair
+# share without triple-counting it.
 
 # Geography & environment
 sea_proximity: 1.0
@@ -17,15 +25,15 @@ air_quality: 1.0
 # Population & infrastructure
 population_density: 1.0
 urbanity: 1.0
-internet_connectivity: 1.0
-healthcare_access: 1.0
+internet_connectivity: 0.7
+healthcare_access: 0.7
 
 # Social & economy
-income: 1.0
+income: 0.7
 cost_of_living: 1.0
 crime_rate: 1.0
-human_freedom: 1.0
-corruption: 1.0
-education: 1.0
-people_happiness: 1.0
-working_hours: 1.0
+human_freedom: 0.5
+corruption: 0.5
+education: 0.7
+people_happiness: 0.5
+working_hours: 0.5

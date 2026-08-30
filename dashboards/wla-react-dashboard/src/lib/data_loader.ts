@@ -28,7 +28,7 @@ export interface DatasetDiscriptor {
   number: number,
   name: string,
   category: string,
-  defaultWeight: number,
+  correlationMultiplier: number,
   description: string
   sources?: DatasetSource[]
   defaultVariant? : string

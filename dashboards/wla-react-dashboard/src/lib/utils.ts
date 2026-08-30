@@ -32,9 +32,9 @@ export function constructWeightVectorFromParamaters(parameters: WlaParameter[], 
         const id = p.descriptor.id;
         if (p.descriptor.variants) {
             const variant = p.variant ?? p.descriptor.defaultVariant;
-            if (variant) weightMap.set(`${id}_${variant}`, p.weight);
+            if (variant) weightMap.set(`${id}_${variant}`, p.weight * p.descriptor.correlationMultiplier);
         } else {
-            weightMap.set(id, p.weight);
+            weightMap.set(id, p.weight * p.descriptor.correlationMultiplier);
         }
     }
     return dataColumns.map((col) => weightMap.get(col) ?? 0);

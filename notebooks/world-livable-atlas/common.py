@@ -238,12 +238,13 @@ def normalize(da):
 
 
 def weighted_score(layers, weights):
-    """Combine normalized layers into a score with per-cell weight renormalization.
+    """Combine normalized layers into a score, imputing missing data as neutral.
 
-    At each grid cell, weights are rescaled over only the layers that have a
-    value there, so a missing variable neither penalises nor discards the cell —
-    it simply does not contribute. A cell is NaN only where every layer is
-    missing.
+    Layers arrive from ``92_normalization.ipynb`` on a percentile-rank scale
+    where 0.5 is by construction the median. Missing values at a cell are
+    imputed with 0.5 so that they neither push the score up (as the previous
+    per-cell weight renormalisation implicitly did for data-rich regions) nor
+    down. A cell is NaN only where every layer is missing (e.g. ocean).
 
     Parameters
     ----------
@@ -260,9 +261,9 @@ def weighted_score(layers, weights):
         The weighted score.
     """
     active = normalize_weights({k: weights[k] for k in layers})
-    numerator = sum(w * layers[k].fillna(0) for k, w in active.items())
-    denominator = sum(w * layers[k].notnull() for k, w in active.items())
-    return numerator / denominator.where(denominator > 0)
+    any_valid = sum(layers[k].notnull() for k in active) > 0
+    score = sum(w * layers[k].fillna(0.5) for k, w in active.items())
+    return score.where(any_valid)
 
 
 def save_variable(da, name):

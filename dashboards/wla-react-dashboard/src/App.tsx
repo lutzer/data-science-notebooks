@@ -76,6 +76,7 @@ function App() {
   useEffect(() => {
     if (data !== null && parameters.length > 0) {
       const weights = constructWeightVectorFromParamaters(parameters, data.columns);
+      console.log(weights)
       const scores = computeWeightedScore(data, weights);
       const ranks = sortedIndicesByScore(scores);
 
