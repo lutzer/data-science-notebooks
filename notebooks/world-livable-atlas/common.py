@@ -219,6 +219,30 @@ def normalize_weights(weights):
     return {k: v / total for k, v in weights.items()}
 
 
+def save_weights(weights, path=WEIGHTS_FILE):
+    """Rewrite ``weights.yaml`` with ``weights``, keeping the header comment.
+
+    Contiguous leading ``#`` or blank lines from the existing file are copied
+    verbatim, then the new mapping is dumped after them in the iteration order
+    of ``weights`` (no alphabetical sort). Any inline comments interleaved with
+    entries are lost — the header block at the top is the only preserved prose.
+    """
+    path = Path(path)
+    header = []
+    if path.exists():
+        with open(path) as f:
+            for line in f:
+                stripped = line.lstrip()
+                if stripped.startswith("#") or stripped == "":
+                    header.append(line)
+                else:
+                    break
+    body = yaml.safe_dump(dict(weights), sort_keys=False)
+    with open(path, "w") as f:
+        f.writelines(header)
+        f.write(body)
+
+
 def load_layers(names):
     """Load processed layers by variable name. Missing files are skipped."""
     layers = {}

@@ -6,7 +6,7 @@
       "name": "Sea Proximity",
       "category": "Environment",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.83,
       "description": "How close an area is to the coast. Higher scores mean shorter distances to the sea.",
       "sources": [
         { "name": "Natural Earth 10m coastlines", "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/" },
@@ -19,7 +19,7 @@
       "name": "Terrain Ruggedness",
       "category": "Environment",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.94,
       "description": "How mountainous the landscape is — captures slope and elevation variability rather than distance to a mountain range.",
       "sources": [
         { "name": "Copernicus GLO-30 DEM", "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model" },
@@ -32,7 +32,7 @@
       "name": "Sun Hours",
       "category": "Environment",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.68,
       "description": "How much sunshine an area receives over the year. Higher scores mean more sunny hours.",
       "sources": [
         { "name": "NASA POWER", "url": "https://power.larc.nasa.gov/" }
@@ -44,7 +44,7 @@
       "name": "Temperature Pleasantness",
       "category": "Environment",
       "tier": "B",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.73,
       "description": "How well the year-round climate matches a chosen region — temperature and humidity are scored independently, so hot-dry and hot-humid pick out different places. Higher scores mean the local climate is closer to your selected preset.",
       "sources": [
         { "name": "NASA POWER (T2M + RH2M monthly climatology 1991–2020)", "url": "https://power.larc.nasa.gov/" }
@@ -65,7 +65,7 @@
       "name": "Rainfall",
       "category": "Environment",
       "tier": "B",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.75,
       "description": "How balanced the rainfall is — moderate totals without long droughts or heavy downpours. Higher scores mean it is more in your selected range",
       "sources": [
         { "name": "ERA5 reanalysis (Copernicus CDS)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" },
@@ -84,7 +84,7 @@
       "name": "Annual Greenness",
       "category": "Environment",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.81,
       "description": "How green and vegetated an area is across the year. Higher scores mean lusher landscapes.",
       "sources": [
         { "name": "MODIS MOD13Q1/A1 (NASA)", "url": "https://modis.gsfc.nasa.gov/data/dataprod/mod13.php" },
@@ -98,7 +98,7 @@
       "name": "Air Quality",
       "category": "Environment",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.62,
       "description": "How clean the outdoor air is, based on fine-particle pollution (PM2.5). Higher scores mean cleaner air.",
       "sources": [
         { "name": "Van Donkelaar et al. global PM2.5 surfaces", "url": "https://sites.wustl.edu/acag/datasets/surface-pm2-5/" },
@@ -112,7 +112,7 @@
       "category": "Environment",
       "tier": "C",
       "countryLevel": false,
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.84,
       "description": "Overall exposure to natural hazards such as floods, earthquakes, cyclones, landslides, and wildfires. Higher scores mean safer areas.",
       "sources": [
         { "name": "GFDRR ThinkHazard!", "url": "https://thinkhazard.org" }
@@ -125,7 +125,7 @@
       "category": "Environment",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.56,
       "description": "How exposed a country is to the long-term impacts of climate change on food, water, health, ecosystems, and infrastructure. Higher scores mean lower vulnerability.",
       "sources": [
         { "name": "ND-GAIN Country Index", "url": "https://gain.nd.edu/our-work/country-index/" }
@@ -137,7 +137,7 @@
       "name": "Population Density",
       "category": "Population & Infrastructure",
       "tier": "A",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.72,
       "description": "How many people live per square kilometre. Higher scores mean it fits better your selected preference.",
       "sources": [
         { "name": "GHSL (JRC)", "url": "https://ghsl.jrc.ec.europa.eu/" },
@@ -157,7 +157,7 @@
       "name": "Urbanity",
       "category": "Population & Infrastructure",
       "tier": "B",
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.71,
       "description": "How much major-city life is within reach — bigger and more globally significant cities nearby raise the score more than distant or minor ones.",
       "sources": [
         { "name": "Natural Earth populated places", "url": "https://naturalearthdata.com/downloads/10m-cultural-vectors/10m-populated-places/" },
@@ -170,7 +170,7 @@
       "name": "Internet Connectivity",
       "category": "Population & Infrastructure",
       "tier": "A",
-      "correlationMultiplier": 0.7,
+      "correlationMultiplier": 0.75,
       "description": "How fast and reliable local internet access is. Higher scores mean better connectivity.",
       "sources": [
         { "name": "Ookla Speedtest Open Data", "url": "https://github.com/teamookla/ookla-open-data" }
@@ -182,7 +182,7 @@
       "name": "Healthcare Access",
       "category": "Population & Infrastructure",
       "tier": "A",
-      "correlationMultiplier": 0.7,
+      "correlationMultiplier": 0.74,
       "description": "How quickly the nearest hospital or clinic can be reached by car. Higher scores mean shorter travel times.",
       "sources": [
         { "name": "Malaria Atlas Project — Accessibility to Healthcare", "url": "https://malariaatlas.org/project-resources/accessibility-to-healthcare/" }
@@ -195,7 +195,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": false,
-      "correlationMultiplier": 0.7,
+      "correlationMultiplier": 0.56,
       "description": "Average income level of residents. Higher scores mean wealthier populations.",
       "sources": [
         { "name": "Kummu et al. gridded GDP/HDI", "url": "https://www.nature.com/articles/sdata20184" }
@@ -208,7 +208,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.68,
       "description": "How expensive daily essentials — rent, groceries, transport — are. Higher scores mean more affordable.",
       "sources": [
         { "name": "Numbeo Cost of Living", "url": "https://www.numbeo.com/cost-of-living/" },
@@ -223,7 +223,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 1.0,
+      "correlationMultiplier": 0.88,
       "description": "How safe an area is from violent crime. Higher scores mean lower crime.",
       "sources": [
         { "name": "World Bank / UNODC homicide rate", "url": "https://data.worldbank.org/indicator/VC.IHR.PSRC.P5" },
@@ -237,7 +237,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 0.5,
+      "correlationMultiplier": 0.72,
       "description": "How free the society is — democratic institutions, civil liberties, and freedom from political violence. Higher scores mean greater freedom.",
       "sources": [
         { "name": "V-Dem Liberal Democracy Index", "url": "https://v-dem.net/" },
@@ -251,7 +251,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 0.5,
+      "correlationMultiplier": 0.67,
       "description": "How much corruption shapes public life across government, courts, and public services. Higher scores mean less corruption.",
       "sources": [
         { "name": "V-Dem Political Corruption Index", "url": "https://v-dem.net/" }
@@ -263,7 +263,7 @@
       "name": "Education",
       "category": "Social & Economy",
       "tier": "B",
-      "correlationMultiplier": 0.7,
+      "correlationMultiplier": 0.59,
       "description": "How educated the local population is, based on mean and expected years of schooling. Higher scores mean better education.",
       "sources": [
         { "name": "Global Data Lab Subnational HDI v8.3", "url": "https://globaldatalab.org/shdi/" },
@@ -277,7 +277,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 0.5,
+      "correlationMultiplier": 0.64,
       "description": "How happy people say they are — the Cantril ladder life-evaluation score (0 = worst possible life, 10 = best possible life), averaged over three years per country. Higher scores mean happier populations.",
       "sources": [
         { "name": "World Happiness Report 2026", "url": "https://worldhappiness.report/" },
@@ -291,7 +291,7 @@
       "category": "Social & Economy",
       "tier": "C",
       "countryLevel": true,
-      "correlationMultiplier": 0.5,
+      "correlationMultiplier": 0.68,
       "description": "How many hours the average employed person works per week. Lower hours mean more leisure and better work-life balance, so higher scores here mean shorter working weeks.",
       "sources": [
         { "name": "ILOSTAT — ILO Modelled Estimates (ILOEST)", "url": "https://ilostat.ilo.org/methods/concepts-and-definitions/ilo-modelled-estimates/" },

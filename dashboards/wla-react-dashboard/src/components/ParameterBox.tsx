@@ -57,7 +57,7 @@ export function ParameterBox({
                         </div>
                     )}
                 </Text>
-                <span className="wla-field-val">{parameter.weight.toFixed(1)}</span>
+                <span className="wla-field-val">{(parameter.weight * parameter.descriptor.correlationMultiplier).toFixed(1)}</span>
             </div>
 
             {variants && (
